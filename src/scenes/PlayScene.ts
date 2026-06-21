@@ -371,17 +371,29 @@ export class PlayScene extends Phaser.Scene {
       const rarityColorsNumeric = {
         common: 0x888899,
         uncommon: 0x3399ff,
-        rare: 0xff00ff
+        rare: 0xff00ff,
+        legendary: 0xffaa00
       };
       const rarityColorsStr = {
         common: '#888899',
         uncommon: '#3399ff',
-        rare: '#ff00ff'
+        rare: '#ff00ff',
+        legendary: '#ffaa00'
       };
       const colorNum = rarityColorsNumeric[joker.rarity] || 0xffffff;
       const colorStr = rarityColorsStr[joker.rarity] || '#ffffff';
       border.lineStyle(2, colorNum, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
+
+      if (joker.rarity === 'legendary') {
+        this.tweens.add({
+          targets: border,
+          alpha: 0.4,
+          duration: 600,
+          yoyo: true,
+          repeat: -1
+        });
+      }
 
       // Shorten name to fit
       let shortName = joker.name;

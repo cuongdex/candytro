@@ -1,6 +1,6 @@
 import type { CandyColor, GameState } from './game';
 
-export type JokerRarity = 'common' | 'uncommon' | 'rare';
+export type JokerRarity = 'common' | 'uncommon' | 'rare' | 'legendary';
 
 export type JokerTriggerType = 'candy' | 'match' | 'cascade_end' | 'swap_end' | 'on_swap';
 

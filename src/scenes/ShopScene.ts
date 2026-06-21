@@ -146,11 +146,22 @@ export class ShopScene extends Phaser.Scene {
       const rarityColors = {
         common: 0x888899,
         uncommon: 0x3399ff,
-        rare: 0xff00ff
+        rare: 0xff00ff,
+        legendary: 0xffaa00
       };
       const color = rarityColors[joker.rarity] || 0xffffff;
       border.lineStyle(2, color, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
+
+      if (joker.rarity === 'legendary') {
+        this.tweens.add({
+          targets: border,
+          alpha: 0.4,
+          duration: 600,
+          yoyo: true,
+          repeat: -1
+        });
+      }
 
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
@@ -265,11 +276,22 @@ export class ShopScene extends Phaser.Scene {
       const rarityColors = {
         common: 0x888899,
         uncommon: 0x3399ff,
-        rare: 0xff00ff
+        rare: 0xff00ff,
+        legendary: 0xffaa00
       };
       const color = rarityColors[joker.rarity] || 0xffffff;
       border.lineStyle(2, color, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
+
+      if (joker.rarity === 'legendary') {
+        this.tweens.add({
+          targets: border,
+          alpha: 0.4,
+          duration: 600,
+          yoyo: true,
+          repeat: -1
+        });
+      }
 
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';

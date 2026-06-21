@@ -18,6 +18,7 @@ Các Joker này dễ dàng xuất hiện trong Shop với giá rẻ, mang lại 
 | 🍋 | **Chanh Vắt Vỏ** | $5 | $3 | cộng **+50 Chips** cho mỗi nhóm Match kẹo **Vàng** nổ. | Cung cấp Chips dồi dào từ các chuỗi nổ kẹo Vàng. |
 | 🍏 | **Táo Giòn Tan** | $5 | $3 | cộng **+6 Mult** cho mỗi nhóm Match kẹo **Xanh Lá** nổ. | Hỗ trợ gia tăng chỉ số Mult cơ bản. |
 | 🦷 | **Răng Ham Hố** | $4 | $2 | Nhận **+$1 Vàng** cho mỗi lượt tráo kẹo còn thừa khi thắng màn. | Joker kinh tế giúp bạn tích lũy tiền nhanh để reroll hoặc nâng cấp kẹo trong Shop. |
+| 🍋🤢 | **Chanh Chua Lè** | $1 | $3 | Trừ **-3 Mult** khi tráo kẹo. | Thẻ "rác" làm giảm điểm số nhưng lại là thương vụ đầu tư tài chính sinh lời (mua $1, bán $3 để kiếm lãi +$2). |
 
 ---
 
@@ -43,6 +44,16 @@ Những Joker bá đạo với khả năng nhân trực tiếp chỉ số nhân 
 | 🔴🔵 | **Rắc Rối Nhân Đôi** | $8 | $4 | Nhân **$\times 1.5$ Mult** nếu cả **Kẹo Đỏ** và **Kẹo Xanh Dương** cùng nổ trong lượt đi. | Hãy tráo đổi tạo chuỗi kép hoặc tận dụng combo rơi kẹo để kích hoạt cả 2 màu này. |
 | 🌈 | **Kẹo Sung Túc** | $10 | $5 | Nhân **$\times 2.0$ Mult** nếu **tất cả 5 màu kẹo** đều phát nổ trong cùng một lượt đi. | Yêu cầu tạo chuỗi rơi kẹo (cascade) sâu để kích nổ đủ 5 màu. Rất khó nhưng sát thương cực khủng. |
 | 💿 | **Giấy Bọc Ba Chiều** | $8 | $4 | Nhân **$\times 1.4$ Mult** cho mọi lượt tráo kẹo mà không kèm điều kiện nào. | Joker đa dụng nhất game, nhân điểm số cuối cùng của bạn lên một tầm cao mới. |
+
+---
+
+## 👑 Thẻ Huyền Thoại (Legendary Jokers)
+
+Những Joker vô cùng hiếm và đắt đỏ, sở hữu sức mạnh thay đổi cục diện trận đấu nhưng đòi hỏi chiến thuật đầu tư thông minh.
+
+| Hình ảnh | Tên Joker | Giá | Bán | Hiệu ứng bùa chú | Gợi ý sử dụng |
+| :---: | :--- | :---: | :---: | :--- | :--- |
+| 👑🪙 | **Hoàng Đế Hoàng Kim** | $15 | $8 | Nhân **$\times (1.0 + \text{Vàng} \times 0.15)$ Mult** dựa trên số tiền vàng đang có (Tối thiểu $\times 1.0$). | Càng nhiều tiền vàng, lực nhân Mult càng khủng (ví dụ: có $20 vàng sẽ là $\times 4.0$ Mult). Khuyến khích lối chơi tích lũy tài chính. |
 
 ---
 

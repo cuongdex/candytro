@@ -233,6 +233,46 @@ export const JOKER_DATABASE: Record<string, () => Joker> = {
       // Game Manager will evaluate this at level win, but we return neutral on swap.
       return { chips: ctx.chips, mult: ctx.mult };
     }
+  }),
+  golden_emperor: () => ({
+    id: 'golden_emperor',
+    name: 'Hoàng Đế Hoàng Kim',
+    description: 'x0.15 Mult cho mỗi đồng Vàng bạn đang sở hữu (Tối thiểu x1.0).',
+    rarity: 'legendary',
+    cost: 15,
+    sellValue: 8,
+    trigger: (ctx) => {
+      if (ctx.triggerType === 'swap_end') {
+        const currentGold = ctx.gold;
+        const multiplier = Math.max(1.0, 1.0 + currentGold * 0.15);
+        const formattedMult = multiplier.toFixed(2);
+        return {
+          chips: ctx.chips,
+          mult: Math.round(ctx.mult * multiplier),
+          message: `x${formattedMult} Mult`
+        };
+      }
+      return { chips: ctx.chips, mult: ctx.mult };
+    }
+  }),
+  sour_lemon: () => ({
+    id: 'sour_lemon',
+    name: 'Chanh Chua Lè',
+    description: '-3 Mult khi tráo kẹo. Bán được với giá $3 Vàng.',
+    rarity: 'common',
+    cost: 1,
+    sellValue: 3,
+    trigger: (ctx) => {
+      if (ctx.triggerType === 'swap_end') {
+        const nextMult = Math.max(1, ctx.mult - 3);
+        return {
+          chips: ctx.chips,
+          mult: nextMult,
+          message: '-3 Mult'
+        };
+      }
+      return { chips: ctx.chips, mult: ctx.mult };
+    }
   })
 };
 
