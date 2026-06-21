@@ -38,7 +38,7 @@ export class MenuScene extends Phaser.Scene {
     // 2. Logo/Title Text (Stylized Neon glow)
     this.logoText = this.add.text(width / 2, height / 3, 'CANDYTRO', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '64px',
+      fontSize: '72px',
       fontStyle: 'bold',
       color: '#ffffff',
       shadow: {
@@ -54,7 +54,7 @@ export class MenuScene extends Phaser.Scene {
     // Subtitle
     this.subText = this.add.text(width / 2, height / 3 + 60, 'The Roguelike Match-3 Deckbuilder', {
       fontFamily: 'Outfit, Roboto, "Segoe UI", sans-serif',
-      fontSize: '20px',
+      fontSize: '24px',
       color: '#00ffcc',
       shadow: {
         offsetX: 0,
@@ -79,7 +79,7 @@ export class MenuScene extends Phaser.Scene {
 
     this.playText = this.add.text(width / 2, height * 0.6 + 30, 'BẮT ĐẦU CHƠI', {
       fontFamily: 'Outfit, Roboto, "Segoe UI", sans-serif',
-      fontSize: '22px',
+      fontSize: '26px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
@@ -135,7 +135,7 @@ export class MenuScene extends Phaser.Scene {
     // Little instructions
     this.instructionText = this.add.text(width / 2, height * 0.85, 'Xếp Kẹo (Match-3) tạo điểm số nhân vật cực lớn nhờ thẻ Joker!', {
       fontFamily: 'Outfit, Roboto, "Segoe UI", sans-serif',
-      fontSize: '14px',
+      fontSize: '17px',
       color: '#888899'
     }).setOrigin(0.5);
   }
@@ -154,7 +154,7 @@ export class MenuScene extends Phaser.Scene {
     // Title
     this.add.text(width / 2, height * 0.15, 'CHỌN HỘP KẸO KHỞI ĐẦU', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '36px',
+      fontSize: '42px',
       fontStyle: 'bold',
       color: '#ffffff',
       shadow: { blur: 15, color: '#aa33ff', fill: true }
@@ -216,7 +216,7 @@ export class MenuScene extends Phaser.Scene {
       // Title
       const nameText = this.add.text(0, -110, deck.name, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '18px',
+        fontSize: '22px',
         fontStyle: 'bold',
         color: '#ffffff',
         align: 'center'
@@ -230,7 +230,7 @@ export class MenuScene extends Phaser.Scene {
       // Stats
       const statsText = this.add.text(0, -25, deck.stats, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '17px',
         fontStyle: 'bold',
         color: deck.textColor
       }).setOrigin(0.5);
@@ -238,7 +238,7 @@ export class MenuScene extends Phaser.Scene {
       // Description
       const descText = this.add.text(0, 60, deck.desc, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '13px',
+        fontSize: '16px',
         color: '#888899',
         align: 'center',
         lineSpacing: 8
@@ -247,7 +247,7 @@ export class MenuScene extends Phaser.Scene {
       // Start Button Overlay/Hint
       const selectHint = this.add.text(0, 130, 'NHẤP ĐỂ CHỌN', {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '12px',
+        fontSize: '15px',
         fontStyle: 'bold',
         color: '#ffffff',
         backgroundColor: '#0a0a0f',

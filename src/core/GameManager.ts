@@ -25,7 +25,8 @@ export class GameManager {
     baseSwaps: 5,
     boughtVouchers: [],
     bossDebuffColor: null,
-    bossType: null
+    bossType: null,
+    disabledJokerIndices: null
   };
 
   public jokerManager: JokerManager;
@@ -67,7 +68,8 @@ export class GameManager {
       baseSwaps: swaps,
       boughtVouchers: [],
       bossDebuffColor: null,
-      bossType: null
+      bossType: null,
+      disabledJokerIndices: null
     };
     this.jokerManager.maxSlots = 5; // Reset Joker slots
     this.jokerManager.setJokers([]);
@@ -85,15 +87,30 @@ export class GameManager {
     if (this.state.round === 3) {
       this.state.bossDebuffColor = this.analyzeActiveColorStyle();
       
-      const bossTypes: ('ice' | 'needle' | 'pillar' | 'flint')[] = ['ice', 'needle', 'pillar', 'flint'];
+      const bossTypes: ('ice' | 'needle' | 'pillar' | 'flint' | 'silence' | 'chameleon' | 'tax')[] = [
+        'ice', 'needle', 'pillar', 'flint', 'silence', 'chameleon', 'tax'
+      ];
       this.state.bossType = bossTypes[Math.floor(Math.random() * bossTypes.length)];
       
       if (this.state.bossType === 'needle') {
         this.state.swapsRemaining = 1;
       }
+
+      if (this.state.bossType === 'silence') {
+        const numJokers = this.jokerManager.getJokers().length;
+        if (numJokers > 0) {
+          const randomIndex = Math.floor(Math.random() * numJokers);
+          this.state.disabledJokerIndices = [randomIndex];
+        } else {
+          this.state.disabledJokerIndices = [];
+        }
+      } else {
+        this.state.disabledJokerIndices = null;
+      }
     } else {
       this.state.bossDebuffColor = null;
       this.state.bossType = null;
+      this.state.disabledJokerIndices = null;
     }
   }
 
