@@ -30,6 +30,7 @@ export interface Joker {
   rarity: JokerRarity;
   cost: number;
   sellValue: number;
+  edition?: 'standard' | 'foil' | 'holographic' | 'polychrome' | 'negative';
   // Execution trigger
   trigger: (context: TriggerContext) => TriggerResult;
 }

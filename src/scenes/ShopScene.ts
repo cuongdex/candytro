@@ -8,11 +8,13 @@ interface ShopJokerSlot {
   id: string;
   price: number;
   purchased: boolean;
+  edition?: 'standard' | 'foil' | 'holographic' | 'polychrome' | 'negative';
   cardContainer?: Phaser.GameObjects.Container;
 }
 
 interface ShopTarotSlot {
   id: string;
+  type: 'tarot' | 'pack';
   name: string;
   description: string;
   price: number;
@@ -188,7 +190,69 @@ export class ShopScene extends Phaser.Scene {
         color: '#ff3366'
       }).setOrigin(0.5);
 
-      container.add([cardBg, border, nameText, descText, sellValueText]);
+      const editionElements: Phaser.GameObjects.GameObject[] = [];
+      if (joker.edition && joker.edition !== 'standard') {
+        let edColor = 0xffffff;
+        let edLabel = '';
+        if (joker.edition === 'foil') {
+          edColor = 0xdddddd;
+          edLabel = 'FOIL';
+        } else if (joker.edition === 'holographic') {
+          edColor = 0x33ccff;
+          edLabel = 'HOLO';
+        } else if (joker.edition === 'polychrome') {
+          edColor = 0xff00ff;
+          edLabel = 'POLY';
+        } else if (joker.edition === 'negative') {
+          edColor = 0xff3366;
+          edLabel = 'NEG';
+        }
+
+        const edBorder = this.add.graphics();
+        edBorder.lineStyle(2, edColor, 0.85);
+        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        editionElements.push(edBorder);
+
+        const edTxt = this.add.text(0, -35, edLabel, {
+          fontFamily: 'Outfit, Roboto, sans-serif',
+          fontSize: '9px',
+          fontStyle: 'bold',
+          color: '#' + edColor.toString(16).padStart(6, '0'),
+          backgroundColor: '#05050a',
+          padding: { x: 3, y: 1 }
+        }).setOrigin(0.5);
+        editionElements.push(edTxt);
+
+        if (joker.edition === 'polychrome') {
+          this.tweens.addCounter({
+            from: 0,
+            to: 360,
+            duration: 2000,
+            loop: -1,
+            onUpdate: (tween) => {
+              if (tween) {
+                const hue = (tween.getValue() as number) / 360;
+                const colorObj = Phaser.Display.Color.HSLToColor(hue, 1, 0.5);
+                if (colorObj) {
+                  edBorder.clear();
+                  edBorder.lineStyle(2.5, colorObj.color, 1);
+                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                }
+              }
+            }
+          });
+        } else if (joker.edition === 'holographic') {
+          this.tweens.add({
+            targets: edBorder,
+            alpha: 0.3,
+            duration: 800,
+            yoyo: true,
+            repeat: -1
+          });
+        }
+      }
+
+      container.add([cardBg, border, nameText, descText, sellValueText, ...editionElements]);
       container.setSize(90, 135);
       container.setInteractive({ useHandCursor: true });
 
@@ -228,9 +292,29 @@ export class ShopScene extends Phaser.Scene {
       const jokerId = getRandomJokerId();
       const tempJoker = createJokerById(jokerId);
       if (tempJoker) {
+        let edition: 'standard' | 'foil' | 'holographic' | 'polychrome' | 'negative' = 'standard';
+        let price = tempJoker.cost;
+        const rand = Math.random();
+        if (rand < 0.85) {
+          edition = 'standard';
+        } else if (rand < 0.91) {
+          edition = 'foil';
+          price += 2;
+        } else if (rand < 0.95) {
+          edition = 'holographic';
+          price += 3;
+        } else if (rand < 0.98) {
+          edition = 'polychrome';
+          price += 4;
+        } else {
+          edition = 'negative';
+          price += 5;
+        }
+
         this.shopJokers.push({
           id: jokerId,
-          price: tempJoker.cost,
+          price: price,
+          edition: edition,
           purchased: false
         });
       }
@@ -265,6 +349,7 @@ export class ShopScene extends Phaser.Scene {
       if (item.purchased) return;
 
       const joker = createJokerById(item.id)!;
+      joker.edition = item.edition || 'standard';
       const x = startX + index * spacing + 45;
       const y = startY + 67;
 
@@ -318,7 +403,69 @@ export class ShopScene extends Phaser.Scene {
         color: '#ffd700'
       }).setOrigin(0.5);
 
-      container.add([cardBg, border, nameText, descText, priceText]);
+      const editionElements: Phaser.GameObjects.GameObject[] = [];
+      if (joker.edition && joker.edition !== 'standard') {
+        let edColor = 0xffffff;
+        let edLabel = '';
+        if (joker.edition === 'foil') {
+          edColor = 0xdddddd;
+          edLabel = 'FOIL';
+        } else if (joker.edition === 'holographic') {
+          edColor = 0x33ccff;
+          edLabel = 'HOLO';
+        } else if (joker.edition === 'polychrome') {
+          edColor = 0xff00ff;
+          edLabel = 'POLY';
+        } else if (joker.edition === 'negative') {
+          edColor = 0xff3366;
+          edLabel = 'NEG';
+        }
+
+        const edBorder = this.add.graphics();
+        edBorder.lineStyle(2, edColor, 0.85);
+        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        editionElements.push(edBorder);
+
+        const edTxt = this.add.text(0, -35, edLabel, {
+          fontFamily: 'Outfit, Roboto, sans-serif',
+          fontSize: '9px',
+          fontStyle: 'bold',
+          color: '#' + edColor.toString(16).padStart(6, '0'),
+          backgroundColor: '#05050a',
+          padding: { x: 3, y: 1 }
+        }).setOrigin(0.5);
+        editionElements.push(edTxt);
+
+        if (joker.edition === 'polychrome') {
+          this.tweens.addCounter({
+            from: 0,
+            to: 360,
+            duration: 2000,
+            loop: -1,
+            onUpdate: (tween) => {
+              if (tween) {
+                const hue = (tween.getValue() as number) / 360;
+                const colorObj = Phaser.Display.Color.HSLToColor(hue, 1, 0.5);
+                if (colorObj) {
+                  edBorder.clear();
+                  edBorder.lineStyle(2.5, colorObj.color, 1);
+                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                }
+              }
+            }
+          });
+        } else if (joker.edition === 'holographic') {
+          this.tweens.add({
+            targets: edBorder,
+            alpha: 0.3,
+            duration: 800,
+            yoyo: true,
+            repeat: -1
+          });
+        }
+      }
+
+      container.add([cardBg, border, nameText, descText, priceText, ...editionElements]);
       container.setSize(90, 135);
       container.setInteractive({ useHandCursor: true });
 
@@ -446,7 +593,7 @@ export class ShopScene extends Phaser.Scene {
     }
 
     // Try adding to slots
-    const success = this.gameManager.jokerManager.addJoker(item.id);
+    const success = this.gameManager.jokerManager.addJoker(item.id, item.edition);
     if (success) {
       this.gameManager.state.gold -= item.price;
       this.gameManager.state.activeJokers = this.gameManager.jokerManager.getJokerIds();
@@ -589,17 +736,39 @@ export class ShopScene extends Phaser.Scene {
   }
 
   private generateShopTarot() {
-    const tarots = [
-      { id: 'devil', name: 'The Devil', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Vàng (+Vàng khi nổ)', price: 3 },
-      { id: 'lovers', name: 'The Lovers', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thủy Tinh (x2.0 điểm nổ)', price: 3 },
-      { id: 'tower', name: 'The Tower', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thép (x1.5 điểm khi giữ trên bảng)', price: 3 },
-      { id: 'star', name: 'The Star', description: 'Biến 2 kẹo ngẫu nhiên thành Viền Ánh Kim/Holo/Đa Sắc', price: 3 }
-    ];
-    const selected = tarots[Math.floor(Math.random() * tarots.length)];
-    this.shopTarot = {
-      ...selected,
-      purchased: false
-    };
+    const rand = Math.random();
+    if (rand < 0.4) {
+      this.shopTarot = {
+        id: 'tarot_pack',
+        type: 'pack',
+        name: 'Tarot Pack',
+        description: 'Mở gói chọn 1 trong 3 thẻ bài Tarot ngẫu nhiên.',
+        price: 4,
+        purchased: false
+      };
+    } else if (rand < 0.8) {
+      this.shopTarot = {
+        id: 'planet_pack',
+        type: 'pack',
+        name: 'Planet Pack',
+        description: 'Mở gói chọn 1 trong 3 thẻ Hành Tinh ngẫu nhiên.',
+        price: 4,
+        purchased: false
+      };
+    } else {
+      const tarots = [
+        { id: 'devil', name: 'The Devil', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Vàng (+Vàng khi nổ)', price: 3 },
+        { id: 'lovers', name: 'The Lovers', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thủy Tinh (x2.0 điểm nổ)', price: 3 },
+        { id: 'tower', name: 'The Tower', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thép (x1.5 điểm khi giữ trên bảng)', price: 3 },
+        { id: 'star', name: 'The Star', description: 'Biến 2 kẹo ngẫu nhiên thành Viền Ánh Kim/Holo/Đa Sắc', price: 3 }
+      ];
+      const selected = tarots[Math.floor(Math.random() * tarots.length)];
+      this.shopTarot = {
+        ...selected,
+        type: 'tarot',
+        purchased: false
+      };
+    }
   }
 
   private renderShopTarot() {
@@ -608,7 +777,7 @@ export class ShopScene extends Phaser.Scene {
     const startX = 50;
     const startY = 380;
     
-    // Tarot card is at the third slot (index 2)
+    // Consumable slot is at the third slot (index 2)
     const x = startX + 2 * 95 + 45;
     const y = startY + 67;
 
@@ -617,14 +786,16 @@ export class ShopScene extends Phaser.Scene {
     const cardBg = this.add.image(0, 0, 'tarot_card_base');
     
     const border = this.add.graphics();
-    border.lineStyle(2, 0xaa33ff, 1);
+    const borderColor = this.shopTarot.type === 'pack' ? 0xffaa00 : 0xaa33ff;
+    border.lineStyle(2, borderColor, 1);
     border.strokeRoundedRect(-45, -67, 90, 135, 12);
 
-    const tarotTag = this.add.text(0, -50, 'TAROT', {
+    const tagColor = this.shopTarot.type === 'pack' ? '#ffaa00' : '#aa33ff';
+    const tarotTag = this.add.text(0, -50, this.shopTarot.type === 'pack' ? 'BOOSTER' : 'TAROT', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '9px',
       fontStyle: 'bold',
-      color: '#aa33ff'
+      color: tagColor
     }).setOrigin(0.5);
 
     const nameText = this.add.text(0, -32, this.shopTarot.name, {
@@ -637,7 +808,7 @@ export class ShopScene extends Phaser.Scene {
     const descText = this.add.text(0, 15, this.shopTarot.description, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '9px',
-      color: '#bfa3ff',
+      color: this.shopTarot.type === 'pack' ? '#ffeedd' : '#bfa3ff',
       align: 'center',
       wordWrap: { width: 80 }
     }).setOrigin(0.5);
@@ -663,7 +834,7 @@ export class ShopScene extends Phaser.Scene {
     container.on('pointerout', () => {
       container.setScale(1.0);
       border.clear();
-      border.lineStyle(2, 0xaa33ff, 1);
+      border.lineStyle(2, borderColor, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
     });
 
@@ -678,7 +849,7 @@ export class ShopScene extends Phaser.Scene {
     if (!this.shopTarot) return;
 
     if (this.gameManager.state.gold < this.shopTarot.price) {
-      this.showMessage('Bạn không có đủ vàng để mua thẻ bài Tarot này!');
+      this.showMessage(this.shopTarot.type === 'pack' ? 'Bạn không có đủ vàng để mua Gói bài này!' : 'Bạn không có đủ vàng để mua thẻ bài Tarot này!');
       AudioManager.getInstance().playClick();
       return;
     }
@@ -686,8 +857,12 @@ export class ShopScene extends Phaser.Scene {
     this.gameManager.state.gold -= this.shopTarot.price;
     this.shopTarot.purchased = true;
     
-    // Apply Tarot effect
-    this.applyTarotEffect(this.shopTarot.id);
+    // Apply effect or open pack
+    if (this.shopTarot.type === 'pack') {
+      this.openBoosterPack(this.shopTarot.id);
+    } else {
+      this.applyTarotEffect(this.shopTarot.id);
+    }
 
     if (this.shopTarot.cardContainer) {
       this.shopTarot.cardContainer.destroy();
@@ -695,8 +870,155 @@ export class ShopScene extends Phaser.Scene {
     }
 
     this.updateGoldUI();
-    this.showMessage(`Đã mua và sử dụng ${this.shopTarot.name}!`);
+    this.showMessage(this.shopTarot.type === 'pack' ? `Đã mua ${this.shopTarot.name}!` : `Đã mua và sử dụng ${this.shopTarot.name}!`);
     AudioManager.getInstance().playUpgrade();
+  }
+
+  private openBoosterPack(packId: string) {
+    const { width, height } = this.scale;
+    const modal = this.add.container(0, 0);
+
+    // 1. Semi-transparent blocker background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x020205, 0.95);
+    bg.fillRect(0, 0, width, height);
+    modal.add(bg);
+
+    // Blocker zone to prevent underlying clicks
+    const zone = this.add.zone(width / 2, height / 2, width, height);
+    zone.setInteractive();
+    modal.add(zone);
+
+    // 2. Title
+    const packName = packId === 'tarot_pack' ? 'GÓI THÈ BÀI PHÉP (TAROT PACK)' : 'GÓI THÈ HÀNH TINH (CELESTIAL PACK)';
+    const title = this.add.text(width / 2, 120, packName, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '28px',
+      fontStyle: 'bold',
+      color: '#ffd700',
+      shadow: { blur: 10, color: '#ffd700', fill: true }
+    }).setOrigin(0.5);
+    modal.add(title);
+
+    const subtitle = this.add.text(width / 2, 160, 'CHỌN 1 TRONG 3 LÁ BÀI DƯỚI ĐÂY', {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '14px',
+      color: '#888899'
+    }).setOrigin(0.5);
+    modal.add(subtitle);
+
+    // 3. Generate 3 random cards based on packId
+    const cardOptions: any[] = [];
+    if (packId === 'tarot_pack') {
+      const tarots = [
+        { id: 'devil', name: 'The Devil', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Vàng (+Vàng khi nổ)', color: 0xaa33ff, isTarot: true },
+        { id: 'lovers', name: 'The Lovers', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thủy Tinh (x2.0 điểm nổ)', color: 0xaa33ff, isTarot: true },
+        { id: 'tower', name: 'The Tower', description: 'Biến 3 kẹo ngẫu nhiên thành Kẹo Thép (x1.5 điểm khi giữ trên bảng)', color: 0xaa33ff, isTarot: true },
+        { id: 'star', name: 'The Star', description: 'Biến 2 kẹo ngẫu nhiên thành Viền Ánh Kim/Holo/Đa Sắc', color: 0xaa33ff, isTarot: true }
+      ];
+      for (let i = 0; i < 3; i++) {
+        cardOptions.push(tarots[Math.floor(Math.random() * tarots.length)]);
+      }
+    } else {
+      const planets = [
+        { id: 'mercury', name: 'Sao Thủy (Mercury)', description: 'Nâng cấp Kẹo Đỏ lên +1 Cấp độ', color: 0xff3366, isPlanet: true, candyColor: 'red', label: 'Đỏ' },
+        { id: 'venus', name: 'Sao Kim (Venus)', description: 'Nâng cấp Kẹo Xanh Dương lên +1 Cấp độ', color: 0x3399ff, isPlanet: true, candyColor: 'blue', label: 'Xanh dương' },
+        { id: 'earth', name: 'Trái Đất (Earth)', description: 'Nâng cấp Kẹo Xanh Lá lên +1 Cấp độ', color: 0x33cc66, isPlanet: true, candyColor: 'green', label: 'Xanh lá' },
+        { id: 'mars', name: 'Sao Hỏa (Mars)', description: 'Nâng cấp Kẹo Vàng lên +1 Cấp độ', color: 0xffcc00, isPlanet: true, candyColor: 'yellow', label: 'Vàng' },
+        { id: 'jupiter', name: 'Sao Mộc (Jupiter)', description: 'Nâng cấp Kẹo Tím lên +1 Cấp độ', color: 0xaa33ff, isPlanet: true, candyColor: 'purple', label: 'Tím' }
+      ];
+      for (let i = 0; i < 3; i++) {
+        cardOptions.push(planets[Math.floor(Math.random() * planets.length)]);
+      }
+    }
+
+    // 4. Render cards
+    const startX = width / 2 - 200;
+    const spacing = 200;
+    const cardY = height / 2;
+
+    cardOptions.forEach((card, index) => {
+      const x = startX + index * spacing;
+      const y = cardY;
+
+      const cardContainer = this.add.container(x, y);
+
+      // Card Base BG
+      const bgImg = this.add.image(0, 0, card.isTarot ? 'tarot_card_base' : 'joker_card_base');
+      
+      const border = this.add.graphics();
+      border.lineStyle(2.5, card.color, 1);
+      border.strokeRoundedRect(-70, -100, 140, 200, 15);
+
+      const tagText = card.isTarot ? 'TAROT' : 'PLANET';
+      const typeText = this.add.text(0, -80, tagText, {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '11px',
+        fontStyle: 'bold',
+        color: '#' + card.color.toString(16).padStart(6, '0')
+      }).setOrigin(0.5);
+
+      const nameText = this.add.text(0, -50, card.name, {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '13px',
+        fontStyle: 'bold',
+        color: '#ffffff',
+        align: 'center',
+        wordWrap: { width: 120 }
+      }).setOrigin(0.5);
+
+      const descText = this.add.text(0, 15, card.description, {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '10px',
+        color: '#ddddff',
+        align: 'center',
+        wordWrap: { width: 120 }
+      }).setOrigin(0.5);
+
+      const useText = this.add.text(0, 75, 'CHỌN LÁ BÀI', {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '11px',
+        fontStyle: 'bold',
+        color: '#00ffcc'
+      }).setOrigin(0.5);
+
+      cardContainer.add([bgImg, border, typeText, nameText, descText, useText]);
+      cardContainer.setSize(140, 200);
+      cardContainer.setInteractive({ useHandCursor: true });
+
+      // Hover animations
+      cardContainer.on('pointerover', () => {
+        AudioManager.getInstance().playClick();
+        cardContainer.setScale(1.08);
+        border.clear();
+        border.lineStyle(3.5, 0xffffff, 1);
+        border.strokeRoundedRect(-70, -100, 140, 200, 15);
+      });
+
+      cardContainer.on('pointerout', () => {
+        cardContainer.setScale(1.0);
+        border.clear();
+        border.lineStyle(2.5, card.color, 1);
+        border.strokeRoundedRect(-70, -100, 140, 200, 15);
+      });
+
+      // Apply effect on select
+      cardContainer.on('pointerdown', () => {
+        AudioManager.getInstance().playUpgrade();
+        if (card.isTarot) {
+          this.applyTarotEffect(card.id);
+          this.showMessage(`Đã kích hoạt lá bài Tarot: ${card.name}!`);
+        } else {
+          this.gameManager.state.candyLevels[card.candyColor as CandyColor] += 1;
+          this.renderCandyUpgrades(); // Redraw levels
+          this.showMessage(`Đã nâng cấp Kẹo ${card.label} lên Cấp ${this.gameManager.state.candyLevels[card.candyColor as CandyColor]}!`);
+        }
+        
+        modal.destroy();
+      });
+
+      modal.add(cardContainer);
+    });
   }
 
   private applyTarotEffect(tarotId: string) {

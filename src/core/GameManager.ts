@@ -24,7 +24,8 @@ export class GameManager {
     maxJokerSlots: 5,
     baseSwaps: 5,
     boughtVouchers: [],
-    bossDebuffColor: null
+    bossDebuffColor: null,
+    bossType: null
   };
 
   public jokerManager: JokerManager;
@@ -65,7 +66,8 @@ export class GameManager {
       maxJokerSlots: 5,
       baseSwaps: swaps,
       boughtVouchers: [],
-      bossDebuffColor: null
+      bossDebuffColor: null,
+      bossType: null
     };
     this.jokerManager.maxSlots = 5; // Reset Joker slots
     this.jokerManager.setJokers([]);
@@ -82,8 +84,16 @@ export class GameManager {
 
     if (this.state.round === 3) {
       this.state.bossDebuffColor = this.analyzeActiveColorStyle();
+      
+      const bossTypes: ('ice' | 'needle' | 'pillar' | 'flint')[] = ['ice', 'needle', 'pillar', 'flint'];
+      this.state.bossType = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+      
+      if (this.state.bossType === 'needle') {
+        this.state.swapsRemaining = 1;
+      }
     } else {
       this.state.bossDebuffColor = null;
+      this.state.bossType = null;
     }
   }
 

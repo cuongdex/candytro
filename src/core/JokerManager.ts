@@ -3,7 +3,16 @@ import { createJokerById } from './JokerDb';
 
 export class JokerManager {
   private activeJokers: Joker[] = [];
-  public maxSlots = 5;
+  private _baseMaxSlots = 5;
+
+  public get maxSlots(): number {
+    const negativeCount = this.activeJokers.filter(j => j.edition === 'negative').length;
+    return this._baseMaxSlots + negativeCount;
+  }
+
+  public set maxSlots(val: number) {
+    this._baseMaxSlots = val;
+  }
 
   constructor() {
     // Start with no jokers
@@ -23,6 +32,7 @@ export class JokerManager {
     for (const id of ids) {
       const joker = createJokerById(id);
       if (joker) {
+        joker.edition = 'standard';
         this.activeJokers.push(joker);
       }
     }
@@ -32,12 +42,13 @@ export class JokerManager {
     return this.activeJokers.map(j => j.id);
   }
 
-  public addJoker(id: string): boolean {
+  public addJoker(id: string, edition?: 'standard' | 'foil' | 'holographic' | 'polychrome' | 'negative'): boolean {
     if (this.activeJokers.length >= this.maxSlots) {
       return false; // Slots full
     }
     const joker = createJokerById(id);
     if (joker) {
+      joker.edition = edition || 'standard';
       this.activeJokers.push(joker);
       return true;
     }

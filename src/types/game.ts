@@ -56,4 +56,5 @@ export interface GameState {
   baseSwaps: number;
   boughtVouchers: string[];
   bossDebuffColor: CandyColor | null;
+  bossType: 'ice' | 'needle' | 'pillar' | 'flint' | null;
 }

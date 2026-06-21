@@ -48,8 +48,8 @@ export class Board {
       }
     }
 
-    // Boss Blind: freeze 4 random candies!
-    if (gameManager.state.round === 3) {
+    // Boss Blind: freeze 4 random candies if it is the ICE boss!
+    if (gameManager.state.round === 3 && gameManager.state.bossType === 'ice') {
       let frozenCount = 0;
       while (frozenCount < 4) {
         const r = Math.floor(Math.random() * this.rows);

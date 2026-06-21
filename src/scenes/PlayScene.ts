@@ -95,6 +95,37 @@ export class PlayScene extends Phaser.Scene {
       }
     }
 
+    // Pillar Boss Overlay (Rows 3 and 4 are locked)
+    if (this.gameManager.state.bossType === 'pillar') {
+      const pillarOverlay = this.add.graphics();
+      pillarOverlay.fillStyle(0xff0055, 0.15);
+      const startY = this.boardY + 3 * this.cellSize;
+      const height = 2 * this.cellSize;
+      pillarOverlay.fillRect(this.boardX, startY, 8 * this.cellSize, height);
+      
+      pillarOverlay.lineStyle(2, 0xff0055, 0.7);
+      pillarOverlay.strokeRect(this.boardX, startY, 8 * this.cellSize, height);
+      
+      const textX = this.boardX + 4 * this.cellSize;
+      const textY = startY + this.cellSize;
+      const lockText = this.add.text(textX, textY, 'KHÓA CỘT TRỤ (PILLAR LOCK)', {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#ff3366',
+        backgroundColor: '#0a0a14cc',
+        padding: { x: 10, y: 5 }
+      }).setOrigin(0.5);
+
+      this.tweens.add({
+        targets: lockText,
+        scale: 1.05,
+        duration: 800,
+        yoyo: true,
+        repeat: -1
+      });
+    }
+
     // Selection Highlight
     this.selectionHighlight = this.add.graphics();
     this.selectionHighlight.setVisible(false);
@@ -116,6 +147,9 @@ export class PlayScene extends Phaser.Scene {
 
     // Add mute button
     AudioManager.addMuteButton(this);
+
+    // Check if player wants to skip Small/Big Blind
+    this.checkSkipBlindChoice();
   }
 
   private createLeftPanel() {
@@ -130,47 +164,69 @@ export class PlayScene extends Phaser.Scene {
     const blindTypes = ['SMALL BLIND', 'BIG BLIND', 'BOSS BLIND'];
     const title = blindTypes[this.gameManager.state.round - 1] || 'BLIND';
     
-    this.add.text(175, 110, `ANTE ${this.gameManager.state.ante} - ${title}`, {
+    this.add.text(175, 105, `ANTE ${this.gameManager.state.ante} - ${title}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '20px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
 
-    if (this.gameManager.state.round === 3 && this.gameManager.state.bossDebuffColor) {
-      const colorNames: Record<CandyColor, string> = {
-        red: 'ĐỎ',
-        blue: 'XANH DƯƠNG',
-        green: 'XANH LÁ',
-        yellow: 'VÀNG',
-        purple: 'TÍM'
+    if (this.gameManager.state.round === 3) {
+      const bossNames = {
+        ice: { name: 'ICE (Băng)', desc: 'Đóng băng 4 kẹo ngẫu nhiên' },
+        needle: { name: 'NEEDLE (Kim)', desc: 'Giới hạn duy nhất 1 lượt tráo kẹo' },
+        pillar: { name: 'PILLAR (Cột)', desc: 'Khóa hàng 3 & hàng 4 trên bảng đấu' },
+        flint: { name: 'FLINT (Đá Lửa)', desc: 'Giảm 50% điểm cơ bản của kẹo' }
       };
-      const vietName = colorNames[this.gameManager.state.bossDebuffColor] || 'KẸO';
-      const warningLabel = this.add.text(175, 135, `VÔ HIỆU HÓA: KẸO ${vietName}`, {
+
+      const bType = this.gameManager.state.bossType || 'ice';
+      const bInfo = bossNames[bType];
+
+      const bossTitleLabel = this.add.text(175, 128, `BOSS: ${bInfo.name}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '12px',
+        fontSize: '13px',
         fontStyle: 'bold',
         color: '#ff3366',
         shadow: { blur: 4, color: '#ff3366', fill: true }
       }).setOrigin(0.5);
 
+      let finalDesc = bInfo.desc;
+      if (this.gameManager.state.bossDebuffColor) {
+        const colorNames: Record<CandyColor, string> = {
+          red: 'Đỏ',
+          blue: 'Xanh dương',
+          green: 'Xanh lá',
+          yellow: 'Vàng',
+          purple: 'Tím'
+        };
+        finalDesc += ` & Vô hiệu kẹo ${colorNames[this.gameManager.state.bossDebuffColor]}`;
+      }
+
+      this.add.text(175, 145, finalDesc, {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '9px',
+        color: '#ffaaaa',
+        align: 'center',
+        wordWrap: { width: 280 }
+      }).setOrigin(0.5);
+
       this.tweens.add({
-        targets: warningLabel,
-        alpha: 0.3,
-        duration: 500,
+        targets: bossTitleLabel,
+        alpha: 0.5,
+        duration: 800,
         yoyo: true,
         repeat: -1
       });
     }
 
     // Score target
-    this.add.text(45, 160, 'MỤC TIÊU:', {
+    this.add.text(45, 165, 'MỤC TIÊU:', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '14px',
       color: '#888899'
     });
 
-    this.targetText = this.add.text(45, 180, this.formatNumber(this.gameManager.state.scoreTarget), {
+    this.targetText = this.add.text(45, 185, this.formatNumber(this.gameManager.state.scoreTarget), {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '28px',
       fontStyle: 'bold',
@@ -422,7 +478,69 @@ export class PlayScene extends Phaser.Scene {
         color: colorStr
       }).setOrigin(0.5);
 
-      container.add([cardBg, border, nameText, descText, rarityText]);
+      const editionElements: Phaser.GameObjects.GameObject[] = [];
+      if (joker.edition && joker.edition !== 'standard') {
+        let edColor = 0xffffff;
+        let edLabel = '';
+        if (joker.edition === 'foil') {
+          edColor = 0xdddddd;
+          edLabel = 'FOIL';
+        } else if (joker.edition === 'holographic') {
+          edColor = 0x33ccff;
+          edLabel = 'HOLO';
+        } else if (joker.edition === 'polychrome') {
+          edColor = 0xff00ff;
+          edLabel = 'POLY';
+        } else if (joker.edition === 'negative') {
+          edColor = 0xff3366;
+          edLabel = 'NEG';
+        }
+
+        const edBorder = this.add.graphics();
+        edBorder.lineStyle(2, edColor, 0.85);
+        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        editionElements.push(edBorder);
+
+        const edTxt = this.add.text(0, -35, edLabel, {
+          fontFamily: 'Outfit, Roboto, sans-serif',
+          fontSize: '9px',
+          fontStyle: 'bold',
+          color: '#' + edColor.toString(16).padStart(6, '0'),
+          backgroundColor: '#05050a',
+          padding: { x: 3, y: 1 }
+        }).setOrigin(0.5);
+        editionElements.push(edTxt);
+
+        if (joker.edition === 'polychrome') {
+          this.tweens.addCounter({
+            from: 0,
+            to: 360,
+            duration: 2000,
+            loop: -1,
+            onUpdate: (tween) => {
+              if (tween) {
+                const hue = (tween.getValue() as number) / 360;
+                const colorObj = Phaser.Display.Color.HSLToColor(hue, 1, 0.5);
+                if (colorObj) {
+                  edBorder.clear();
+                  edBorder.lineStyle(2.5, colorObj.color, 1);
+                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                }
+              }
+            }
+          });
+        } else if (joker.edition === 'holographic') {
+          this.tweens.add({
+            targets: edBorder,
+            alpha: 0.3,
+            duration: 800,
+            yoyo: true,
+            repeat: -1
+          });
+        }
+      }
+
+      container.add([cardBg, border, nameText, descText, rarityText, ...editionElements]);
  
       // Make card interactive for drag-and-drop
       container.setSize(90, 135);
@@ -654,6 +772,28 @@ export class PlayScene extends Phaser.Scene {
     const c = clickedCandy.getData('col') as number;
 
     const state = this.board.grid[r][c];
+
+    if (this.gameManager.state.bossType === 'pillar' && (r === 3 || r === 4)) {
+      const warningText = this.add.text(clickedCandy.x, clickedCandy.y, 'HÀNG BỊ KHÓA!', {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#ff3366',
+        backgroundColor: '#0a0a14',
+        padding: { x: 6, y: 3 },
+        shadow: { blur: 4, color: '#000000', fill: true }
+      }).setOrigin(0.5);
+      
+      this.tweens.add({
+        targets: warningText,
+        y: clickedCandy.y - 30,
+        alpha: 0,
+        duration: 800,
+        onComplete: () => warningText.destroy()
+      });
+      return;
+    }
+
     if (state && state.frozen) {
       const warningText = this.add.text(clickedCandy.x, clickedCandy.y, 'ĐÃ ĐÓNG BĂNG!', {
         fontFamily: 'Outfit, Roboto, sans-serif',
@@ -1488,6 +1628,174 @@ export class PlayScene extends Phaser.Scene {
       duration: 900,
       ease: 'Back.easeOut',
       onComplete: () => txt.destroy()
+    });
+  }
+
+  private checkSkipBlindChoice() {
+    const round = this.gameManager.state.round;
+    if (round === 3) return; // Cannot skip Boss Blind
+
+    const { width, height } = this.scale;
+    const modal = this.add.container(0, 0);
+
+    // blocker background
+    const bg = this.add.graphics();
+    bg.fillStyle(0x020205, 0.95);
+    bg.fillRect(0, 0, width, height);
+    modal.add(bg);
+
+    const zone = this.add.zone(width / 2, height / 2, width, height);
+    zone.setInteractive();
+    modal.add(zone);
+
+    // Title
+    const blindName = round === 1 ? 'SMALL BLIND' : 'BIG BLIND';
+    const tagInfo = round === 1 
+      ? { name: 'Huy hiệu Đầu Tư (Investment Tag)', desc: 'Nhận ngay +$9 Vàng lập tức' }
+      : { name: 'Huy hiệu Nâng Cấp (Handy Tag)', desc: 'Nâng cấp ngẫu nhiên 1 màu kẹo lên +1 Cấp độ' };
+
+    const titleText = this.add.text(width / 2, height / 2 - 140, `BẠN CÓ MUỐN ĐẤU HOẶC BỎ QUA ${blindName}?`, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '24px',
+      fontStyle: 'bold',
+      color: '#ffd700'
+    }).setOrigin(0.5);
+    modal.add(titleText);
+
+    // Draw Skip Tag Info Box
+    const tagBg = this.add.graphics();
+    tagBg.fillStyle(0x110c1c, 0.9);
+    tagBg.fillRoundedRect(width / 2 - 200, height / 2 - 80, 400, 100, 12);
+    tagBg.lineStyle(2, 0xffaa00, 0.7);
+    tagBg.strokeRoundedRect(width / 2 - 200, height / 2 - 80, 400, 100, 12);
+    modal.add(tagBg);
+
+    const tagTitle = this.add.text(width / 2, height / 2 - 60, `PHẦN THƯỞNG BỎ QUA (SKIP REWARD):`, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffaa00'
+    }).setOrigin(0.5);
+    modal.add(tagTitle);
+
+    const tagName = this.add.text(width / 2, height / 2 - 42, tagInfo.name, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+    modal.add(tagName);
+
+    const tagDesc = this.add.text(width / 2, height / 2 - 20, tagInfo.desc, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '12px',
+      color: '#888899'
+    }).setOrigin(0.5);
+    modal.add(tagDesc);
+
+    // Buttons
+    // 1. Play Button
+    const playBtnX = width / 2 - 120;
+    const btnY = height / 2 + 70;
+    const playBg = this.add.graphics();
+    playBg.fillStyle(0x00ffcc, 0.15);
+    playBg.fillRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+    playBg.lineStyle(2, 0x00ffcc, 0.8);
+    playBg.strokeRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+    modal.add(playBg);
+
+    const playText = this.add.text(playBtnX, btnY, 'ĐẤU BLIND', {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '16px',
+      fontStyle: 'bold',
+      color: '#00ffcc'
+    }).setOrigin(0.5);
+    modal.add(playText);
+
+    const playZone = this.add.zone(playBtnX, btnY, 160, 50).setInteractive({ useHandCursor: true });
+    modal.add(playZone);
+
+    playZone.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
+      playBg.clear();
+      playBg.fillStyle(0x00ffcc, 0.35);
+      playBg.fillRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+      playBg.lineStyle(2, 0x00ffcc, 1);
+      playBg.strokeRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+    });
+
+    playZone.on('pointerout', () => {
+      playBg.clear();
+      playBg.fillStyle(0x00ffcc, 0.15);
+      playBg.fillRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+      playBg.lineStyle(2, 0x00ffcc, 0.8);
+      playBg.strokeRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
+    });
+
+    playZone.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
+      modal.destroy();
+    });
+
+    // 2. Skip Button
+    const skipBtnX = width / 2 + 120;
+    const skipBg = this.add.graphics();
+    skipBg.fillStyle(0xff0055, 0.15);
+    skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    skipBg.lineStyle(2, 0xff0055, 0.8);
+    skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    modal.add(skipBg);
+
+    const skipText = this.add.text(skipBtnX, btnY, 'BỎ QUA (SKIP)', {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '16px',
+      fontStyle: 'bold',
+      color: '#ff0055'
+    }).setOrigin(0.5);
+    modal.add(skipText);
+
+    const skipZone = this.add.zone(skipBtnX, btnY, 160, 50).setInteractive({ useHandCursor: true });
+    modal.add(skipZone);
+
+    skipZone.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
+      skipBg.clear();
+      skipBg.fillStyle(0xff0055, 0.35);
+      skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+      skipBg.lineStyle(2, 0xff0055, 1);
+      skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    });
+
+    skipZone.on('pointerout', () => {
+      skipBg.clear();
+      skipBg.fillStyle(0xff0055, 0.15);
+      skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+      skipBg.lineStyle(2, 0xff0055, 0.8);
+      skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    });
+
+    skipZone.on('pointerdown', () => {
+      AudioManager.getInstance().playUpgrade();
+      
+      if (round === 1) {
+        this.gameManager.state.gold += 9;
+      } else {
+        const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+        const randColor = colors[Math.floor(Math.random() * colors.length)];
+        this.gameManager.state.candyLevels[randColor as CandyColor] += 1;
+      }
+
+      if (this.gameManager.state.round === 3) {
+        this.gameManager.state.round = 1;
+        this.gameManager.state.ante += 1;
+      } else {
+        this.gameManager.state.round += 1;
+      }
+
+      this.gameManager.state.boardGrid = null;
+
+      modal.destroy();
+      this.scene.start('ShopScene');
     });
   }
 

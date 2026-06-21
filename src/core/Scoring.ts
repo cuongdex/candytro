@@ -52,6 +52,12 @@ export class ScoringEngine {
         matchMult += 4;
       }
 
+      // Flint Boss: halve chips and mult
+      if (gameState.bossType === 'flint') {
+        matchChips = Math.max(1, Math.round(matchChips / 2));
+        matchMult = Math.max(1, Math.round(matchMult / 2));
+      }
+
       chips += matchChips;
       mult += matchMult;
     }
@@ -242,13 +248,36 @@ export class ScoringEngine {
       };
 
       const res = joker.trigger(ctx);
-      chips = res.chips;
-      mult = res.mult;
+      let newChips = res.chips;
+      let newMult = res.mult;
+      const editionMessages: string[] = [];
+
+      // Apply Joker Edition score modifiers
+      if (joker.edition === 'foil') {
+        newChips += 50;
+        editionMessages.push('+50 Chips');
+      } else if (joker.edition === 'holographic') {
+        newMult += 10;
+        editionMessages.push('+10 Mult');
+      } else if (joker.edition === 'polychrome') {
+        newMult = Math.round(newMult * 1.5);
+        editionMessages.push('x1.5 Mult');
+      }
+
+      chips = newChips;
+      mult = newMult;
       if (res.goldAdded) {
         goldAdded += res.goldAdded;
       }
-      if (res.message) {
-        triggerMessages.push({ text: res.message, source: joker.name, jokerIndex: i });
+
+      let msg = res.message || '';
+      if (editionMessages.length > 0) {
+        const edMsg = editionMessages.join(' & ');
+        msg = msg ? `${msg} (${edMsg})` : edMsg;
+      }
+
+      if (msg) {
+        triggerMessages.push({ text: msg, source: joker.name, jokerIndex: i });
       }
     }
 
