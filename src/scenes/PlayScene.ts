@@ -1334,11 +1334,15 @@ export class PlayScene extends Phaser.Scene {
   }
 
   // Floating text on Jokers when triggered
-  private animateJokerTriggers(messages: { text: string; source: string }[]) {
+  private animateJokerTriggers(messages: { text: string; source: string; jokerIndex?: number }[]) {
     messages.forEach((msg, idx) => {
-      // Find card container corresponding to the Joker's source name
-      const activeJokers = this.gameManager.jokerManager.getJokers();
-      const jokerIndex = activeJokers.findIndex(j => j.name === msg.source);
+      let jokerIndex = msg.jokerIndex !== undefined ? msg.jokerIndex : -1;
+      
+      if (jokerIndex === -1) {
+        // Find card container corresponding to the Joker's source name
+        const activeJokers = this.gameManager.jokerManager.getJokers();
+        jokerIndex = activeJokers.findIndex(j => j.name === msg.source);
+      }
       
       let spawnX = this.boardX + 240;
       let spawnY = 80;

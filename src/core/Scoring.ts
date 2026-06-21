@@ -23,12 +23,12 @@ export class ScoringEngine {
     chips: number;
     mult: number;
     goldAdded: number;
-    triggerMessages: { text: string; source: string }[];
+    triggerMessages: { text: string; source: string; jokerIndex?: number }[];
   } {
     let chips = 0;
     let mult = 0;
     let goldAdded = 0;
-    const triggerMessages: { text: string; source: string }[] = [];
+    const triggerMessages: { text: string; source: string; jokerIndex?: number }[] = [];
 
     // 1. Establish base score from all matches in this cascade step
     for (const match of matchGroups) {
@@ -63,7 +63,8 @@ export class ScoringEngine {
       triggerType: 'candy' | 'match' | 'cascade_end',
       extra: Partial<TriggerContext>
     ) => {
-      for (const joker of jokers) {
+      for (let i = 0; i < jokers.length; i++) {
+        const joker = jokers[i];
         if (gameState.bossDebuffColor) {
           const debuffed = gameState.bossDebuffColor;
           if (
@@ -95,7 +96,7 @@ export class ScoringEngine {
         }
 
         if (res.message) {
-          triggerMessages.push({ text: res.message, source: joker.name });
+          triggerMessages.push({ text: res.message, source: joker.name, jokerIndex: i });
         }
       }
     };
@@ -176,12 +177,12 @@ export class ScoringEngine {
     chips: number;
     mult: number;
     goldAdded: number;
-    triggerMessages: { text: string; source: string }[];
+    triggerMessages: { text: string; source: string; jokerIndex?: number }[];
   } {
     let chips = accumulatedChips;
     let mult = accumulatedMult;
     let goldAdded = 0;
-    const triggerMessages: { text: string; source: string }[] = [];
+    const triggerMessages: { text: string; source: string; jokerIndex?: number }[] = [];
 
     if (mult < 1) mult = 1;
 
@@ -211,7 +212,8 @@ export class ScoringEngine {
     }
 
     // 2. Trigger swap_end Joker triggers
-    for (const joker of jokers) {
+    for (let i = 0; i < jokers.length; i++) {
+      const joker = jokers[i];
       if (gameState.bossDebuffColor) {
         const debuffed = gameState.bossDebuffColor;
         if (
@@ -246,7 +248,7 @@ export class ScoringEngine {
         goldAdded += res.goldAdded;
       }
       if (res.message) {
-        triggerMessages.push({ text: res.message, source: joker.name });
+        triggerMessages.push({ text: res.message, source: joker.name, jokerIndex: i });
       }
     }
 
