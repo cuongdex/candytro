@@ -30,7 +30,7 @@ export class GameOverScene extends Phaser.Scene {
     // 2. GameOver Title
     this.add.text(width / 2, height / 4, 'THẤT BẠI!', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '64px',
+      fontSize: '72px',
       fontStyle: 'bold',
       color: '#ff1133',
       shadow: { blur: 20, color: '#ff1133', fill: true }
@@ -39,7 +39,7 @@ export class GameOverScene extends Phaser.Scene {
     // Subtitle
     this.add.text(width / 2, height / 4 + 60, 'Bạn đã hết lượt đi mà chưa đạt được điểm mục tiêu', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '20px',
       color: '#888899'
     }).setOrigin(0.5);
 
@@ -52,33 +52,33 @@ export class GameOverScene extends Phaser.Scene {
 
     // Stats texts
     this.add.text(width / 2 - 150, height / 2 - 50, 'Vòng đấu (Ante):', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', color: '#888899'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', color: '#888899'
     });
     this.add.text(width / 2 + 150, height / 2 - 50, `${this.gameManager.state.ante}`, {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffffff'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff'
     }).setOrigin(1, 0);
 
     const blindTypes = ['Small Blind', 'Big Blind', 'Boss Blind'];
     const curRoundStr = blindTypes[this.gameManager.state.round - 1] || 'Blind';
     this.add.text(width / 2 - 150, height / 2 - 15, 'Màn đấu (Round):', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', color: '#888899'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', color: '#888899'
     });
     this.add.text(width / 2 + 150, height / 2 - 15, `${curRoundStr}`, {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#00ffcc'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#00ffcc'
     }).setOrigin(1, 0);
 
     this.add.text(width / 2 - 150, height / 2 + 20, 'Điểm số đạt được:', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', color: '#888899'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', color: '#888899'
     });
     this.add.text(width / 2 + 150, height / 2 + 20, `${this.gameManager.state.scoreCurrent.toLocaleString()} / ${this.gameManager.state.scoreTarget.toLocaleString()}`, {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ff3366'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ff3366'
     }).setOrigin(1, 0);
 
     this.add.text(width / 2 - 150, height / 2 + 55, 'Tổng tiền tích lũy:', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', color: '#888899'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', color: '#888899'
     });
     this.add.text(width / 2 + 150, height / 2 + 55, `$${this.gameManager.state.gold}`, {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#ffd700'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffd700'
     }).setOrigin(1, 0);
 
     // 4. Action Buttons
@@ -103,7 +103,7 @@ export class GameOverScene extends Phaser.Scene {
     bg1.strokeRoundedRect(x1 - btnW / 2, y1 - btnH / 2, btnW, btnH, 10);
 
     this.add.text(x1, y1, 'CHƠI LẠI', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '16px', fontStyle: 'bold', color: '#00ffcc'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '19px', fontStyle: 'bold', color: '#00ffcc'
     }).setOrigin(0.5);
 
     const area1 = this.add.zone(x1, y1, btnW, btnH).setInteractive({ useHandCursor: true });
@@ -142,7 +142,7 @@ export class GameOverScene extends Phaser.Scene {
     bg2.strokeRoundedRect(x2 - btnW / 2, y2 - btnH / 2, btnW, btnH, 10);
 
     this.add.text(x2, y2, 'MÀN HÌNH CHÍNH', {
-      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#ffffff'
+      fontFamily: 'Outfit, Roboto, sans-serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff'
     }).setOrigin(0.5);
 
     const area2 = this.add.zone(x2, y2, btnW, btnH).setInteractive({ useHandCursor: true });

@@ -110,7 +110,7 @@ export class PlayScene extends Phaser.Scene {
       const textY = startY + this.cellSize;
       const lockText = this.add.text(textX, textY, 'KHÓA CỘT TRỤ (PILLAR LOCK)', {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: '#ff3366',
         backgroundColor: '#0a0a14cc',
@@ -166,7 +166,7 @@ export class PlayScene extends Phaser.Scene {
     
     this.add.text(175, 105, `ANTE ${this.gameManager.state.ante} - ${title}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '20px',
+      fontSize: '26px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
@@ -184,7 +184,7 @@ export class PlayScene extends Phaser.Scene {
 
       const bossTitleLabel = this.add.text(175, 128, `BOSS: ${bInfo.name}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '13px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: '#ff3366',
         shadow: { blur: 4, color: '#ff3366', fill: true }
@@ -204,7 +204,7 @@ export class PlayScene extends Phaser.Scene {
 
       this.add.text(175, 145, finalDesc, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         color: '#ffaaaa',
         align: 'center',
         wordWrap: { width: 280 }
@@ -222,13 +222,13 @@ export class PlayScene extends Phaser.Scene {
     // Score target
     this.add.text(45, 165, 'MỤC TIÊU:', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '14px',
+      fontSize: '19px',
       color: '#888899'
     });
 
     this.targetText = this.add.text(45, 185, this.formatNumber(this.gameManager.state.scoreTarget), {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '28px',
+      fontSize: '32px',
       fontStyle: 'bold',
       color: '#ff0055',
       shadow: { blur: 5, color: '#ff0055', fill: true }
@@ -237,13 +237,13 @@ export class PlayScene extends Phaser.Scene {
     // Score current
     this.add.text(45, 230, 'ĐIỂM HIỆN TẠI:', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '14px',
+      fontSize: '19px',
       color: '#888899'
     });
 
     this.scoreText = this.add.text(45, 250, '0', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '36px',
+      fontSize: '42px',
       fontStyle: 'bold',
       color: '#ffffff',
       shadow: { blur: 10, color: '#00ffcc', fill: true }
@@ -256,7 +256,7 @@ export class PlayScene extends Phaser.Scene {
     // Swaps remaining
     this.swapsText = this.add.text(175, 360, `LƯỢT TRÁO: ${this.gameManager.state.swapsRemaining}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '24px',
+      fontSize: '30px',
       fontStyle: 'bold',
       color: '#ffaa00'
     }).setOrigin(0.5);
@@ -264,7 +264,7 @@ export class PlayScene extends Phaser.Scene {
     // Gold
     this.goldText = this.add.text(175, 410, `VÀNG: $${this.gameManager.state.gold}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '22px',
+      fontSize: '28px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
@@ -276,7 +276,7 @@ export class PlayScene extends Phaser.Scene {
     // Candy Levels Stats
     this.add.text(175, 480, 'CẤP ĐỘ KẸO', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '22px',
       fontStyle: 'bold',
       color: '#888899'
     }).setOrigin(0.5);
@@ -294,26 +294,26 @@ export class PlayScene extends Phaser.Scene {
       // Small icon placeholder
       this.add.image(60, yPos, `candy_${col.key}`).setScale(0.5);
       
-      this.add.text(90, yPos - 10, col.label, {
+      this.add.text(90, yPos - 12, col.label, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '18px',
         color: '#ffffff'
       });
 
       const lvl = this.gameManager.state.candyLevels[col.key];
       const stats = ScoringEngine.getBaseCandyStats(col.key, lvl);
 
-      this.add.text(280, yPos - 10, `Lvl ${lvl}`, {
+      this.add.text(280, yPos - 12, `Lvl ${lvl}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: col.hex
       }).setOrigin(1, 0);
 
       // Display candy base formula: Chips x Mult
-      this.add.text(90, yPos + 6, `(${stats.chips} x ${stats.mult})`, {
+      this.add.text(90, yPos + 8, `(${stats.chips} x ${stats.mult})`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '15px',
         color: '#888899'
       });
     });
@@ -333,7 +333,7 @@ export class PlayScene extends Phaser.Scene {
     
     this.chipsText = this.add.text(0, 0, '0', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '20px',
+      fontSize: '24px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
@@ -342,7 +342,7 @@ export class PlayScene extends Phaser.Scene {
     // X multiplier symbol
     this.add.text(startX + 155, startY, 'X', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '24px',
+      fontSize: '28px',
       fontStyle: 'bold',
       color: '#ffaa00'
     }).setOrigin(0.5);
@@ -357,7 +357,7 @@ export class PlayScene extends Phaser.Scene {
 
     this.multText = this.add.text(0, 0, '0', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '20px',
+      fontSize: '24px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
@@ -366,14 +366,14 @@ export class PlayScene extends Phaser.Scene {
     // Equal symbol and final score text
     this.add.text(startX + 325, startY, '=', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '24px',
+      fontSize: '28px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
 
     this.scoringPanelText = this.add.text(startX + 400, startY, '0', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '22px',
+      fontSize: '26px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
@@ -457,7 +457,7 @@ export class PlayScene extends Phaser.Scene {
 
       const nameText = this.add.text(0, -50, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
@@ -465,7 +465,7 @@ export class PlayScene extends Phaser.Scene {
       // Shorten description or fit it in the card
       const descText = this.add.text(0, 15, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         color: '#888899',
         align: 'center',
         wordWrap: { width: 80 }
@@ -473,7 +473,7 @@ export class PlayScene extends Phaser.Scene {
 
       const rarityText = this.add.text(0, 52, joker.rarity.toUpperCase(), {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: colorStr
       }).setOrigin(0.5);
@@ -503,7 +503,7 @@ export class PlayScene extends Phaser.Scene {
 
         const edTxt = this.add.text(0, -35, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '9px',
+          fontSize: '14px',
           fontStyle: 'bold',
           color: '#' + edColor.toString(16).padStart(6, '0'),
           backgroundColor: '#05050a',
@@ -695,7 +695,7 @@ export class PlayScene extends Phaser.Scene {
 
       const txt = this.add.text(14, 14, labelText, {
         fontFamily: 'Outfit, Arial, sans-serif',
-        fontSize: '9px',
+        fontSize: '10px',
         fontStyle: 'bold',
         color: labelTextCol
       }).setOrigin(0.5);
@@ -776,7 +776,7 @@ export class PlayScene extends Phaser.Scene {
     if (this.gameManager.state.bossType === 'pillar' && (r === 3 || r === 4)) {
       const warningText = this.add.text(clickedCandy.x, clickedCandy.y, 'HÀNG BỊ KHÓA!', {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: '#ff3366',
         backgroundColor: '#0a0a14',
@@ -797,7 +797,7 @@ export class PlayScene extends Phaser.Scene {
     if (state && state.frozen) {
       const warningText = this.add.text(clickedCandy.x, clickedCandy.y, 'ĐÃ ĐÓNG BĂNG!', {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: '#ff3366',
         backgroundColor: '#0a0a14',
@@ -1133,7 +1133,7 @@ export class PlayScene extends Phaser.Scene {
         // Floating text flying to target score
         const floatingScore = this.add.text(this.boardX + 240, 705, `+${this.formatNumber(finalScore)}`, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '28px',
+          fontSize: '34px',
           fontStyle: 'bold',
           color: '#00ffcc',
           shadow: { blur: 15, color: '#00ffcc', fill: true }
@@ -1508,7 +1508,7 @@ export class PlayScene extends Phaser.Scene {
       this.time.delayedCall(idx * 200, () => {
         const floatText = this.add.text(spawnX, spawnY, msg.text, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '16px',
+          fontSize: '20px',
           fontStyle: 'bold',
           color: msg.text.includes('Mult') ? '#ff3355' : msg.text.includes('Chips') ? '#3399ff' : '#ffd700',
           backgroundColor: '#05050f',
@@ -1546,7 +1546,7 @@ export class PlayScene extends Phaser.Scene {
   private animateGoldGain(amount: number) {
     const goldFloat = this.add.text(175, 410, `+$${amount}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '24px',
+      fontSize: '28px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
@@ -1598,16 +1598,16 @@ export class PlayScene extends Phaser.Scene {
   private spawnComboPopup(x: number, y: number, comboCount: number) {
     let comboText = `COMBO x${comboCount}!`;
     let color = '#00ffcc';
-    let fontSize = '20px';
+    let fontSize = '24px';
     
     if (comboCount >= 4) {
       comboText = `THẦN THÁNH x${comboCount}!!!`;
       color = '#ff00ff';
-      fontSize = '28px';
+      fontSize = '34px';
     } else if (comboCount >= 3) {
       comboText = `SIÊU CẤP x${comboCount}!!`;
       color = '#ffaa00';
-      fontSize = '24px';
+      fontSize = '28px';
     }
 
     const txt = this.add.text(x, y - 20, comboText, {
@@ -1656,7 +1656,7 @@ export class PlayScene extends Phaser.Scene {
 
     const titleText = this.add.text(width / 2, height / 2 - 140, `BẠN CÓ MUỐN ĐẤU HOẶC BỎ QUA ${blindName}?`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '24px',
+      fontSize: '30px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
@@ -1672,7 +1672,7 @@ export class PlayScene extends Phaser.Scene {
 
     const tagTitle = this.add.text(width / 2, height / 2 - 60, `PHẦN THƯỞNG BỎ QUA (SKIP REWARD):`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '11px',
+      fontSize: '15px',
       fontStyle: 'bold',
       color: '#ffaa00'
     }).setOrigin(0.5);
@@ -1680,7 +1680,7 @@ export class PlayScene extends Phaser.Scene {
 
     const tagName = this.add.text(width / 2, height / 2 - 42, tagInfo.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '15px',
+      fontSize: '20px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
@@ -1688,7 +1688,7 @@ export class PlayScene extends Phaser.Scene {
 
     const tagDesc = this.add.text(width / 2, height / 2 - 20, tagInfo.desc, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '12px',
+      fontSize: '17px',
       color: '#888899'
     }).setOrigin(0.5);
     modal.add(tagDesc);
@@ -1706,7 +1706,7 @@ export class PlayScene extends Phaser.Scene {
 
     const playText = this.add.text(playBtnX, btnY, 'ĐẤU BLIND', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '22px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
@@ -1748,7 +1748,7 @@ export class PlayScene extends Phaser.Scene {
 
     const skipText = this.add.text(skipBtnX, btnY, 'BỎ QUA (SKIP)', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '22px',
       fontStyle: 'bold',
       color: '#ff0055'
     }).setOrigin(0.5);
