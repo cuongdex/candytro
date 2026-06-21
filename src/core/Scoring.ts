@@ -71,6 +71,9 @@ export class ScoringEngine {
     ) => {
       for (let i = 0; i < jokers.length; i++) {
         const joker = jokers[i];
+        if (gameState.disabledJokerIndices && gameState.disabledJokerIndices.includes(i)) {
+          continue;
+        }
         if (gameState.bossDebuffColor) {
           const debuffed = gameState.bossDebuffColor;
           if (
@@ -220,6 +223,9 @@ export class ScoringEngine {
     // 2. Trigger swap_end Joker triggers
     for (let i = 0; i < jokers.length; i++) {
       const joker = jokers[i];
+      if (gameState.disabledJokerIndices && gameState.disabledJokerIndices.includes(i)) {
+        continue;
+      }
       if (gameState.bossDebuffColor) {
         const debuffed = gameState.bossDebuffColor;
         if (
