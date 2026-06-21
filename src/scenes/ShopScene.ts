@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { createJokerById, getRandomJokerId } from '../core/JokerDb';
 import { GameManager } from '../core/GameManager';
 import type { CandyColor } from '../types/game';
+import { AudioManager } from '../core/AudioManager';
 
 interface ShopJokerSlot {
   id: string;
@@ -118,6 +119,9 @@ export class ShopScene extends Phaser.Scene {
 
     // 5. Render Next Round Button
     this.createNextRoundButton();
+
+    // Add mute button
+    AudioManager.addMuteButton(this);
   }
 
   private rebuildActiveJokers() {
@@ -177,6 +181,14 @@ export class ShopScene extends Phaser.Scene {
       container.setSize(90, 135);
       container.setInteractive({ useHandCursor: true });
 
+      container.on('pointerover', () => {
+        AudioManager.getInstance().playClick();
+        container.setScale(1.05);
+      });
+      container.on('pointerout', () => {
+        container.setScale(1.0);
+      });
+
       // Click to sell
       container.on('pointerdown', () => {
         this.sellActiveJoker(index, joker.name);
@@ -194,6 +206,7 @@ export class ShopScene extends Phaser.Scene {
     this.updateGoldUI();
     this.rebuildActiveJokers();
     this.showMessage(`Đã bán ${name} nhận được $${value} vàng!`);
+    AudioManager.getInstance().playClick();
   }
 
   private generateShopJokers() {
@@ -288,10 +301,17 @@ export class ShopScene extends Phaser.Scene {
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
-        container.setScale(1.05);
+        AudioManager.getInstance().playClick();
+        container.setScale(1.08);
+        border.clear();
+        border.lineStyle(3, 0xffffff, 1);
+        border.strokeRoundedRect(-45, -67, 90, 135, 12);
       });
       container.on('pointerout', () => {
         container.setScale(1.0);
+        border.clear();
+        border.lineStyle(2, color, 1);
+        border.strokeRoundedRect(-45, -67, 90, 135, 12);
       });
 
       container.on('pointerdown', () => {
@@ -371,10 +391,21 @@ export class ShopScene extends Phaser.Scene {
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
-        container.setScale(1.05);
+        AudioManager.getInstance().playClick();
+        container.setScale(1.08);
+        cardBg.clear();
+        cardBg.fillStyle(0x0e0e15, 0.95);
+        cardBg.fillRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.lineStyle(2.5, 0xffffff, 1);
+        cardBg.strokeRoundedRect(-45, -67, 90, 135, 12);
       });
       container.on('pointerout', () => {
         container.setScale(1.0);
+        cardBg.clear();
+        cardBg.fillStyle(0x0e0e15, 0.9);
+        cardBg.fillRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.lineStyle(1.5, 0x333344, 1);
+        cardBg.strokeRoundedRect(-45, -67, 90, 135, 12);
       });
 
       container.on('pointerdown', () => {
@@ -388,6 +419,7 @@ export class ShopScene extends Phaser.Scene {
   private buyJoker(item: ShopJokerSlot, _index: number) {
     if (this.gameManager.state.gold < item.price) {
       this.showMessage('Bạn không có đủ vàng để mua Joker này!');
+      AudioManager.getInstance().playClick();
       return;
     }
 
@@ -402,8 +434,10 @@ export class ShopScene extends Phaser.Scene {
       this.rebuildActiveJokers();
       this.renderShopItems(); // Renders without this card
       this.showMessage(`Đã mua ${createJokerById(item.id)!.name}!`);
+      AudioManager.getInstance().playUpgrade();
     } else {
       this.showMessage('Hết ô chứa Joker trống! Hãy bán Joker cũ trước.');
+      AudioManager.getInstance().playClick();
     }
   }
 
@@ -411,6 +445,7 @@ export class ShopScene extends Phaser.Scene {
     const cost = this.gameManager.getCandyUpgradeCost(color);
     if (this.gameManager.state.gold < cost) {
       this.showMessage('Bạn không có đủ vàng để mua nâng cấp kẹo!');
+      AudioManager.getInstance().playClick();
       return;
     }
 
@@ -419,6 +454,7 @@ export class ShopScene extends Phaser.Scene {
       this.updateGoldUI();
       this.renderCandyUpgrades(); // Redraw levels
       this.showMessage(`Đã nâng cấp Kẹo ${label} lên Cấp ${this.gameManager.state.candyLevels[color]}!`);
+      AudioManager.getInstance().playUpgrade();
     }
   }
 
@@ -444,6 +480,7 @@ export class ShopScene extends Phaser.Scene {
     const area = this.add.zone(220, btnY + btnH / 2, btnW, btnH).setInteractive({ useHandCursor: true });
     
     area.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
       bg.clear();
       bg.fillStyle(0x00ffcc, 0.15);
       bg.fillRoundedRect(btnX, btnY, btnW, btnH, 8);
@@ -460,6 +497,7 @@ export class ShopScene extends Phaser.Scene {
     });
 
     area.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
       this.rerollShop();
     });
   }
@@ -505,6 +543,7 @@ export class ShopScene extends Phaser.Scene {
     const area = this.add.zone(width - 150, btnY + btnH / 2, btnW, btnH).setInteractive({ useHandCursor: true });
 
     area.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
       bg.clear();
       bg.fillStyle(0xff0055, 0.2);
       bg.fillRoundedRect(btnX, btnY, btnW, btnH, 8);
@@ -521,6 +560,7 @@ export class ShopScene extends Phaser.Scene {
     });
 
     area.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
       // Go to PlayScene
       this.scene.start('PlayScene');
     });
@@ -592,12 +632,15 @@ export class ShopScene extends Phaser.Scene {
     container.setInteractive({ useHandCursor: true });
 
     container.on('pointerover', () => {
-      container.setScale(1.05);
-      border.lineStyle(2, 0xdd88ff, 1);
+      AudioManager.getInstance().playClick();
+      container.setScale(1.08);
+      border.clear();
+      border.lineStyle(2, 0xffffff, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
     });
     container.on('pointerout', () => {
       container.setScale(1.0);
+      border.clear();
       border.lineStyle(2, 0xaa33ff, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
     });
@@ -614,6 +657,7 @@ export class ShopScene extends Phaser.Scene {
 
     if (this.gameManager.state.gold < this.shopTarot.price) {
       this.showMessage('Bạn không có đủ vàng để mua thẻ bài Tarot này!');
+      AudioManager.getInstance().playClick();
       return;
     }
 
@@ -630,6 +674,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.updateGoldUI();
     this.showMessage(`Đã mua và sử dụng ${this.shopTarot.name}!`);
+    AudioManager.getInstance().playUpgrade();
   }
 
   private applyTarotEffect(tarotId: string) {
@@ -762,12 +807,15 @@ export class ShopScene extends Phaser.Scene {
     container.setInteractive({ useHandCursor: true });
 
     container.on('pointerover', () => {
-      container.setScale(1.05);
-      border.lineStyle(2, 0xffffff, 1);
+      AudioManager.getInstance().playClick();
+      container.setScale(1.08);
+      border.clear();
+      border.lineStyle(2.5, 0xffffff, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
     });
     container.on('pointerout', () => {
       container.setScale(1.0);
+      border.clear();
       border.lineStyle(2, 0x00ffcc, 1);
       border.strokeRoundedRect(-45, -67, 90, 135, 12);
     });
@@ -784,6 +832,7 @@ export class ShopScene extends Phaser.Scene {
 
     if (this.gameManager.state.gold < this.shopVoucher.price) {
       this.showMessage('Bạn không có đủ vàng để mua Voucher này!');
+      AudioManager.getInstance().playClick();
       return;
     }
 
@@ -811,6 +860,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.updateGoldUI();
     this.showMessage(`Đã kích hoạt Voucher ${this.shopVoucher.name}!`);
+    AudioManager.getInstance().playUpgrade();
   }
 
   private updateGoldUI() {

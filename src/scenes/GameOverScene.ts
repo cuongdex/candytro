@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameManager } from '../core/GameManager';
+import { AudioManager } from '../core/AudioManager';
 
 export class GameOverScene extends Phaser.Scene {
   private gameManager!: GameManager;
@@ -82,6 +83,9 @@ export class GameOverScene extends Phaser.Scene {
 
     // 4. Action Buttons
     this.createButtons(width, height);
+
+    // Add mute button
+    AudioManager.addMuteButton(this);
   }
 
   private createButtons(width: number, height: number) {
@@ -105,6 +109,7 @@ export class GameOverScene extends Phaser.Scene {
     const area1 = this.add.zone(x1, y1, btnW, btnH).setInteractive({ useHandCursor: true });
     
     area1.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
       bg1.clear();
       bg1.fillStyle(0x00ffcc, 0.2);
       bg1.fillRoundedRect(x1 - btnW / 2, y1 - btnH / 2, btnW, btnH, 10);
@@ -121,6 +126,7 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     area1.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
       this.gameManager.startNewRun();
       this.scene.start('PlayScene');
     });
@@ -142,6 +148,7 @@ export class GameOverScene extends Phaser.Scene {
     const area2 = this.add.zone(x2, y2, btnW, btnH).setInteractive({ useHandCursor: true });
 
     area2.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
       bg2.clear();
       bg2.fillStyle(0xffffff, 0.15);
       bg2.fillRoundedRect(x2 - btnW / 2, y2 - btnH / 2, btnW, btnH, 10);
@@ -158,6 +165,7 @@ export class GameOverScene extends Phaser.Scene {
     });
 
     area2.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
       this.scene.start('MenuScene');
     });
   }

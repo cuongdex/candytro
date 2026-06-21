@@ -3,6 +3,7 @@ import { Board } from '../core/Board';
 import { GameManager } from '../core/GameManager';
 import { ScoringEngine } from '../core/Scoring';
 import type { CandyColor, MatchGroup, CandyState } from '../types/game';
+import { AudioManager } from '../core/AudioManager';
 
 export class PlayScene extends Phaser.Scene {
   private board!: Board;
@@ -112,6 +113,9 @@ export class PlayScene extends Phaser.Scene {
 
     // Setup input listener for grid clicks
     this.input.on('pointerdown', this.onPointerDown, this);
+
+    // Add mute button
+    AudioManager.addMuteButton(this);
   }
 
   private createLeftPanel() {
@@ -407,22 +411,32 @@ export class PlayScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       container.add([cardBg, border, nameText, descText, rarityText]);
-
+ 
       // Make card interactive for drag-and-drop
       container.setSize(90, 135);
       container.setInteractive({ useHandCursor: true, draggable: true });
-
+ 
       // Store index on container
       container.setData('index', index);
-
+ 
+      container.on('pointerover', () => {
+        AudioManager.getInstance().playClick();
+        container.setScale(1.05);
+      });
+      container.on('pointerout', () => {
+        container.setScale(1.0);
+      });
+ 
       // Drag event handlers
       container.on('dragstart', () => {
+        AudioManager.getInstance().playClick();
         this.children.bringToTop(container);
         container.setScale(1.1);
+        border.clear();
         border.lineStyle(3, 0x00ffcc, 1);
         border.strokeRoundedRect(-45, -67, 90, 135, 12);
       });
-
+ 
       container.on('drag', (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
         container.x = dragX;
         // Keep y near the slot area
@@ -622,6 +636,8 @@ export class PlayScene extends Phaser.Scene {
       return;
     }
 
+    AudioManager.getInstance().playClick();
+
     const r = clickedCandy.getData('row') as number;
     const c = clickedCandy.getData('col') as number;
 
@@ -682,6 +698,8 @@ export class PlayScene extends Phaser.Scene {
 
   private performSwap(candy1: { row: number; col: number }, candy2: { row: number; col: number }) {
     this.isProcessing = true;
+
+    AudioManager.getInstance().playSwap();
 
     const sprite1 = this.candySprites[candy1.row][candy1.col]!;
     const sprite2 = this.candySprites[candy2.row][candy2.col]!;
@@ -796,10 +814,32 @@ export class PlayScene extends Phaser.Scene {
     // Add current matches colors
     matches.forEach(m => matchedColorsInSwap.add(m.color));
 
+    // Play match chime
+    AudioManager.getInstance().playMatch(comboCount);
+
+    // Spawn combo popup
+    if (comboCount > 1) {
+      this.spawnComboPopup(this.boardX + 4 * this.cellSize, this.boardY + 4 * this.cellSize, comboCount);
+    }
+
     // Process logic explosions & spawn cards
     const explosionResult = this.board.processExplosions(matches);
     const clearedList = explosionResult.cleared;
     const unfrozenList = explosionResult.unfrozen;
+
+    // Camera shake and sound effects depending on explosion scale
+    const hasSpecial = clearedList.some(c => c.state && c.state.special && c.state.special !== 'normal');
+    if (hasSpecial) {
+      this.cameras.main.shake(250, 0.01);
+      const hasLaser = clearedList.some(c => c.state && (c.state.special === 'striped_h' || c.state.special === 'striped_v'));
+      if (hasLaser) {
+        AudioManager.getInstance().playLaser();
+      } else {
+        AudioManager.getInstance().playExplosion();
+      }
+    } else {
+      this.cameras.main.shake(120, 0.004);
+    }
 
     // Animate ice shatter for newly unfrozen cells
     unfrozenList.forEach(cell => {
@@ -850,6 +890,9 @@ export class PlayScene extends Phaser.Scene {
 
     // Animate Joker activations if there are messages
     this.animateJokerTriggers(result.triggerMessages);
+    if (result.triggerMessages.length > 0) {
+      AudioManager.getInstance().playMagic();
+    }
 
     // Blast candies visually (including chain explosions)
     this.animateCandyExplosion(clearedList, () => {
@@ -923,6 +966,9 @@ export class PlayScene extends Phaser.Scene {
 
     // Animate Joker triggers
     this.animateJokerTriggers(finalResult.triggerMessages);
+    if (finalResult.triggerMessages.length > 0) {
+      AudioManager.getInstance().playMagic();
+    }
 
     // Animate Score Box flying to scoreboard
     this.tweens.add({
@@ -1107,39 +1153,43 @@ export class PlayScene extends Phaser.Scene {
         const emitter = this.add.graphics();
         emitter.fillStyle(this.getCandyHexColor(cell.state.color), 0.8);
         
-        // Spawn 8 mini particles flying in random directions
-        const particlesList: { x: number; y: number; dx: number; dy: number }[] = [];
-        for (let i = 0; i < 8; i++) {
+        // Spawn 16 mini particles flying in random directions with gravity arcs
+        const particlesList: { x: number; y: number; dx: number; dy: number; size: number }[] = [];
+        for (let i = 0; i < 16; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = 2 + Math.random() * 4;
+          const speed = 1 + Math.random() * 5;
           particlesList.push({
             x: sprite.x,
             y: sprite.y,
-              dx: Math.cos(angle) * speed,
-              dy: Math.sin(angle) * speed
-            });
-          }
-
-          // Tween the particles
-          this.tweens.addCounter({
-            from: 0,
-            to: 100,
-            duration: 250,
-            onUpdate: (tween) => {
-              const val = (tween.getValue() as number) ?? 0;
-              emitter.clear();
-              particlesList.forEach(p => {
-                p.x += p.dx;
-                p.y += p.dy;
-                p.dy += 0.15; // gravity
-                const size = Phaser.Math.Clamp(5 * (1 - val / 100), 0, 8);
-                emitter.fillCircle(p.x, p.y, size);
-              });
-            },
-            onComplete: () => {
-              emitter.destroy();
-            }
+            dx: Math.cos(angle) * speed,
+            dy: Math.sin(angle) * speed - 1.5, // Initial pop upwards
+            size: 4 + Math.random() * 5
           });
+        }
+
+        // Tween the particles
+        this.tweens.addCounter({
+          from: 0,
+          to: 100,
+          duration: 350,
+          onUpdate: (tween) => {
+            const val = (tween.getValue() as number) ?? 0;
+            emitter.clear();
+            const pct = val / 100;
+            particlesList.forEach(p => {
+              p.x += p.dx;
+              p.y += p.dy;
+              p.dy += 0.25; // gravity acceleration
+              const currentSize = Phaser.Math.Clamp(p.size * (1 - pct), 0, 10);
+              const alpha = 1 - pct;
+              emitter.fillStyle(this.getCandyHexColor(cell.state.color), alpha * 0.9);
+              emitter.fillCircle(p.x, p.y, currentSize);
+            });
+          },
+          onComplete: () => {
+            emitter.destroy();
+          }
+        });
 
           // Custom special effects for matching candies
           if (cell.state.special === 'striped_h') {
@@ -1387,6 +1437,42 @@ export class PlayScene extends Phaser.Scene {
       purple: 0xaa33ff
     };
     return map[color] || 0xffffff;
+  }
+
+  private spawnComboPopup(x: number, y: number, comboCount: number) {
+    let comboText = `COMBO x${comboCount}!`;
+    let color = '#00ffcc';
+    let fontSize = '20px';
+    
+    if (comboCount >= 4) {
+      comboText = `THẦN THÁNH x${comboCount}!!!`;
+      color = '#ff00ff';
+      fontSize = '28px';
+    } else if (comboCount >= 3) {
+      comboText = `SIÊU CẤP x${comboCount}!!`;
+      color = '#ffaa00';
+      fontSize = '24px';
+    }
+
+    const txt = this.add.text(x, y - 20, comboText, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: fontSize,
+      fontStyle: 'bold',
+      color: color,
+      backgroundColor: '#0a0a14',
+      padding: { x: 8, y: 4 },
+      shadow: { blur: 6, color: '#000000', fill: true }
+    }).setOrigin(0.5);
+
+    this.tweens.add({
+      targets: txt,
+      y: y - 60,
+      alpha: 0,
+      scale: 1.25,
+      duration: 900,
+      ease: 'Back.easeOut',
+      onComplete: () => txt.destroy()
+    });
   }
 
   private formatNumber(num: number): string {

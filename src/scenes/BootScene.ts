@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { AudioManager } from '../core/AudioManager';
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -37,6 +38,15 @@ export class BootScene extends Phaser.Scene {
     // Generate all dynamic textures
     this.createCandyTextures();
     this.createUITextures();
+
+    // Bootstrap music on first user interaction
+    const startMusicHandler = () => {
+      AudioManager.getInstance().startMusic();
+      window.removeEventListener('click', startMusicHandler);
+      window.removeEventListener('keydown', startMusicHandler);
+    };
+    window.addEventListener('click', startMusicHandler);
+    window.addEventListener('keydown', startMusicHandler);
 
     // Go to Menu Scene
     this.scene.start('MenuScene');

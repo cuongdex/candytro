@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameManager } from '../core/GameManager';
+import { AudioManager } from '../core/AudioManager';
 
 export class MenuScene extends Phaser.Scene {
   private logoText!: Phaser.GameObjects.Text;
@@ -30,6 +31,9 @@ export class MenuScene extends Phaser.Scene {
     for (let y = 0; y < height; y += gridSize) {
       bgGraphics.lineBetween(0, y, width, y);
     }
+
+    // Add mute button
+    AudioManager.addMuteButton(this);
 
     // 2. Logo/Title Text (Stylized Neon glow)
     this.logoText = this.add.text(width / 2, height / 3, 'CANDY BALATRO', {
@@ -115,6 +119,7 @@ export class MenuScene extends Phaser.Scene {
     });
 
     this.triggerArea.on('pointerdown', () => {
+      AudioManager.getInstance().playClick();
       // Sound effect or click scale down
       this.tweens.add({
         targets: [this.playText, this.playBtnBg],
@@ -255,6 +260,7 @@ export class MenuScene extends Phaser.Scene {
 
       // Hover effects
       container.on('pointerover', () => {
+        AudioManager.getInstance().playClick();
         container.setScale(1.05);
         cardBg.clear();
         cardBg.fillStyle(0x131322, 0.95);
@@ -276,6 +282,7 @@ export class MenuScene extends Phaser.Scene {
 
       // Selection click
       container.on('pointerdown', () => {
+        AudioManager.getInstance().playUpgrade();
         // Shatter slide effect or screen fade out
         this.tweens.add({
           targets: container,
