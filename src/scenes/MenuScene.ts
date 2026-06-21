@@ -36,7 +36,7 @@ export class MenuScene extends Phaser.Scene {
     AudioManager.addMuteButton(this);
 
     // 2. Logo/Title Text (Stylized Neon glow)
-    this.logoText = this.add.text(width / 2, height / 3, 'CANDY BALATRO', {
+    this.logoText = this.add.text(width / 2, height / 3, 'CANDYTRO', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '64px',
       fontStyle: 'bold',
