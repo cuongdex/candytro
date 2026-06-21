@@ -133,6 +133,32 @@ export class PlayScene extends Phaser.Scene {
       color: '#00ffcc'
     }).setOrigin(0.5);
 
+    if (this.gameManager.state.round === 3 && this.gameManager.state.bossDebuffColor) {
+      const colorNames: Record<CandyColor, string> = {
+        red: 'ĐỎ',
+        blue: 'XANH DƯƠNG',
+        green: 'XANH LÁ',
+        yellow: 'VÀNG',
+        purple: 'TÍM'
+      };
+      const vietName = colorNames[this.gameManager.state.bossDebuffColor] || 'KẸO';
+      const warningLabel = this.add.text(175, 135, `VÔ HIỆU HÓA: KẸO ${vietName}`, {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '12px',
+        fontStyle: 'bold',
+        color: '#ff3366',
+        shadow: { blur: 4, color: '#ff3366', fill: true }
+      }).setOrigin(0.5);
+
+      this.tweens.add({
+        targets: warningLabel,
+        alpha: 0.3,
+        duration: 500,
+        yoyo: true,
+        repeat: -1
+      });
+    }
+
     // Score target
     this.add.text(45, 160, 'MỤC TIÊU:', {
       fontFamily: 'Outfit, Roboto, sans-serif',
@@ -438,25 +464,31 @@ export class PlayScene extends Phaser.Scene {
     sprite.setScale(0.85);
     container.add(sprite);
 
-    // 2. Apply Edition visuals (Tints / Tweens)
-    if (state.edition === 'foil') {
-      sprite.setTint(0xccddee);
-    } else if (state.edition === 'holographic') {
-      this.tweens.add({
-        targets: sprite,
-        tint: { from: 0xffaaee, to: 0xaaeeee },
-        duration: 1200,
-        yoyo: true,
-        repeat: -1
-      });
-    } else if (state.edition === 'polychrome') {
-      this.tweens.add({
-        targets: sprite,
-        tint: { from: 0xff6666, to: 0x66ff66 },
-        duration: 1800,
-        yoyo: true,
-        repeat: -1
-      });
+    const isDebuffed = this.gameManager.state.round === 3 && state.color === this.gameManager.state.bossDebuffColor;
+
+    if (isDebuffed) {
+      sprite.setTint(0x444444);
+    } else {
+      // 2. Apply Edition visuals (Tints / Tweens)
+      if (state.edition === 'foil') {
+        sprite.setTint(0xccddee);
+      } else if (state.edition === 'holographic') {
+        this.tweens.add({
+          targets: sprite,
+          tint: { from: 0xffaaee, to: 0xaaeeee },
+          duration: 1200,
+          yoyo: true,
+          repeat: -1
+        });
+      } else if (state.edition === 'polychrome') {
+        this.tweens.add({
+          targets: sprite,
+          tint: { from: 0xff6666, to: 0x66ff66 },
+          duration: 1800,
+          yoyo: true,
+          repeat: -1
+        });
+      }
     }
 
     // 3. Apply Special overlays (Stripes / Glows)

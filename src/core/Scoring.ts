@@ -32,6 +32,10 @@ export class ScoringEngine {
 
     // 1. Establish base score from all matches in this cascade step
     for (const match of matchGroups) {
+      if (gameState.bossDebuffColor && match.color === gameState.bossDebuffColor) {
+        continue;
+      }
+      
       const level = gameState.candyLevels[match.color] || 1;
       const baseStats = this.getBaseCandyStats(match.color, level);
       
@@ -60,6 +64,20 @@ export class ScoringEngine {
       extra: Partial<TriggerContext>
     ) => {
       for (const joker of jokers) {
+        if (gameState.bossDebuffColor) {
+          const debuffed = gameState.bossDebuffColor;
+          if (
+            (joker.id === 'strawberry_blast' && debuffed === 'red') ||
+            (joker.id === 'blueberry_fizz' && debuffed === 'blue') ||
+            (joker.id === 'grape_soda' && debuffed === 'purple') ||
+            (joker.id === 'lemon_squeeze' && debuffed === 'yellow') ||
+            (joker.id === 'apple_crisp' && debuffed === 'green') ||
+            (joker.id === 'double_trouble' && (debuffed === 'red' || debuffed === 'blue'))
+          ) {
+            continue;
+          }
+        }
+
         const ctx: TriggerContext = {
           triggerType,
           chips,
@@ -84,6 +102,10 @@ export class ScoringEngine {
 
     // 2. Trigger individual candy Enhancements and Editions
     for (const candy of clearedCandies) {
+      if (gameState.bossDebuffColor && candy.color === gameState.bossDebuffColor) {
+        continue;
+      }
+
       // A. Enhancements
       if (candy.enhancement === 'bonus') {
         chips += 30;
@@ -123,6 +145,9 @@ export class ScoringEngine {
 
     // 3. Trigger match group Joker triggers
     for (const match of matchGroups) {
+      if (gameState.bossDebuffColor && match.color === gameState.bossDebuffColor) {
+        continue;
+      }
       runJokerTrigger('match', { candyColor: match.color, matchSize: match.size });
     }
 
@@ -167,6 +192,9 @@ export class ScoringEngine {
         for (let c = 0; c < 8; c++) {
           const cell = gameState.boardGrid[r][c];
           if (cell && cell.enhancement === 'steel') {
+            if (gameState.bossDebuffColor && cell.color === gameState.bossDebuffColor) {
+              continue;
+            }
             steelCount++;
           }
         }
@@ -184,9 +212,27 @@ export class ScoringEngine {
 
     // 2. Trigger swap_end Joker triggers
     for (const joker of jokers) {
+      if (gameState.bossDebuffColor) {
+        const debuffed = gameState.bossDebuffColor;
+        if (
+          (joker.id === 'strawberry_blast' && debuffed === 'red') ||
+          (joker.id === 'blueberry_fizz' && debuffed === 'blue') ||
+          (joker.id === 'grape_soda' && debuffed === 'purple') ||
+          (joker.id === 'lemon_squeeze' && debuffed === 'yellow') ||
+          (joker.id === 'apple_crisp' && debuffed === 'green') ||
+          (joker.id === 'double_trouble' && (debuffed === 'red' || debuffed === 'blue'))
+        ) {
+          continue;
+        }
+      }
+
+      const filteredMatchedColors = matchedColorsInSwap.filter(
+        c => c !== gameState.bossDebuffColor
+      );
+
       const ctx: TriggerContext = {
         triggerType: 'swap_end',
-        matchedColors: matchedColorsInSwap,
+        matchedColors: filteredMatchedColors,
         chips,
         mult,
         gold: gameState.gold,

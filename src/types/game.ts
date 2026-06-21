@@ -55,4 +55,5 @@ export interface GameState {
   maxJokerSlots: number;
   baseSwaps: number;
   boughtVouchers: string[];
+  bossDebuffColor: CandyColor | null;
 }

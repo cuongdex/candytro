@@ -23,7 +23,8 @@ export class GameManager {
     deckType: 'classic',
     maxJokerSlots: 5,
     baseSwaps: 5,
-    boughtVouchers: []
+    boughtVouchers: [],
+    bossDebuffColor: null
   };
 
   public jokerManager: JokerManager;
@@ -63,7 +64,8 @@ export class GameManager {
       deckType: chosenDeck,
       maxJokerSlots: 5,
       baseSwaps: swaps,
-      boughtVouchers: []
+      boughtVouchers: [],
+      bossDebuffColor: null
     };
     this.jokerManager.maxSlots = 5; // Reset Joker slots
     this.jokerManager.setJokers([]);
@@ -77,6 +79,60 @@ export class GameManager {
     
     // Sync active jokers from manager to state
     this.state.activeJokers = this.jokerManager.getJokerIds();
+
+    if (this.state.round === 3) {
+      this.state.bossDebuffColor = this.analyzeActiveColorStyle();
+    } else {
+      this.state.bossDebuffColor = null;
+    }
+  }
+
+  public analyzeActiveColorStyle(): CandyColor {
+    const colors: CandyColor[] = ['red', 'blue', 'green', 'yellow', 'purple'];
+    const weights: Record<CandyColor, number> = {
+      red: 0,
+      blue: 0,
+      green: 0,
+      yellow: 0,
+      purple: 0
+    };
+
+    // Calculate level weights (Level * 15)
+    for (const color of colors) {
+      const lvl = this.state.candyLevels[color] || 1;
+      weights[color] += lvl * 15;
+    }
+
+    // Add Joker weights
+    const jokerIds = this.jokerManager.getJokerIds();
+    for (const id of jokerIds) {
+      if (id === 'strawberry_blast') {
+        weights['red'] += 50;
+      } else if (id === 'blueberry_fizz') {
+        weights['blue'] += 50;
+      } else if (id === 'grape_soda') {
+        weights['purple'] += 50;
+      } else if (id === 'lemon_squeeze') {
+        weights['yellow'] += 50;
+      } else if (id === 'apple_crisp') {
+        weights['green'] += 50;
+      } else if (id === 'double_trouble') {
+        weights['red'] += 25;
+        weights['blue'] += 25;
+      }
+    }
+
+    // Find color with max weight
+    let bestColor: CandyColor = 'red';
+    let maxWeight = -1;
+    for (const color of colors) {
+      if (weights[color] > maxWeight) {
+        maxWeight = weights[color];
+        bestColor = color;
+      }
+    }
+
+    return bestColor;
   }
 
   public calculateTargetScore(ante: number, round: number): number {
