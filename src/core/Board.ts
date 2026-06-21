@@ -1,4 +1,5 @@
 import type { CandyColor, CandyState, MatchGroup } from '../types/game';
+import { GameManager } from './GameManager';
 
 export class Board {
   public grid: (CandyState | null)[][];
@@ -13,15 +14,27 @@ export class Board {
     this.initializeBoard();
   }
 
+  private getRandomColor(deckType?: string): CandyColor {
+    if (deckType === 'love') {
+      // Love box color pool (no blue, more red weight: red=2, other=1)
+      const loveColors: CandyColor[] = ['red', 'red', 'green', 'yellow', 'purple'];
+      return loveColors[Math.floor(Math.random() * loveColors.length)];
+    }
+    return this.colors[Math.floor(Math.random() * this.colors.length)];
+  }
+
   // Initialize board with no pre-existing match-3 groups
   public initializeBoard(): void {
+    const gameManager = GameManager.getInstance();
+    const deckType = gameManager.state.deckType;
+
     let hasMatches = true;
     while (hasMatches) {
       // Fill board with random colors
       for (let r = 0; r < this.rows; r++) {
         for (let c = 0; c < this.cols; c++) {
           this.grid[r][c] = {
-            color: this.colors[Math.floor(Math.random() * this.colors.length)],
+            color: this.getRandomColor(deckType),
             enhancement: 'none',
             edition: 'standard',
             special: 'normal'
@@ -32,6 +45,20 @@ export class Board {
       const matches = this.findMatches();
       if (matches.length === 0) {
         hasMatches = false;
+      }
+    }
+
+    // Boss Blind: freeze 4 random candies!
+    if (gameManager.state.round === 3) {
+      let frozenCount = 0;
+      while (frozenCount < 4) {
+        const r = Math.floor(Math.random() * this.rows);
+        const c = Math.floor(Math.random() * this.cols);
+        const cell = this.grid[r][c];
+        if (cell && !cell.frozen) {
+          cell.frozen = true;
+          frozenCount++;
+        }
       }
     }
   }
@@ -142,6 +169,7 @@ export class Board {
   public processExplosions(matches: MatchGroup[]): {
     cleared: { row: number; col: number; state: CandyState }[];
     spawns: { row: number; col: number; state: CandyState }[];
+    unfrozen: { row: number; col: number }[];
   } {
     const clearedMap = new Map<string, CandyState>();
     const queue: { row: number; col: number }[] = [];
@@ -258,6 +286,29 @@ export class Board {
       }
     }
 
+    // Unfreeze adjacent candies
+    const unfrozen: { row: number; col: number }[] = [];
+    clearedMap.forEach((_state, key) => {
+      const [r, c] = key.split(',').map(Number);
+      const neighbors = [
+        { r: r - 1, c },
+        { r: r + 1, c },
+        { r, c: c - 1 },
+        { r, c: c + 1 }
+      ];
+      for (const n of neighbors) {
+        if (n.r >= 0 && n.r < this.rows && n.c >= 0 && n.c < this.cols) {
+          const cell = this.grid[n.r][n.c];
+          if (cell && cell.frozen) {
+            cell.frozen = false;
+            if (!unfrozen.some(u => u.row === n.r && u.col === n.c)) {
+              unfrozen.push({ row: n.r, col: n.c });
+            }
+          }
+        }
+      }
+    });
+
     // 3. Clear logical grid
     clearedMap.forEach((_state, key) => {
       const [r, c] = key.split(',').map(Number);
@@ -277,7 +328,7 @@ export class Board {
       cleared.push({ row: r, col: c, state });
     });
 
-    return { cleared, spawns };
+    return { cleared, spawns, unfrozen };
   }
 
   // Clear matched candies (fallback simple clear)
@@ -322,8 +373,9 @@ export class Board {
       }
 
       // 2. Spawn new candies at the top
+      const deckType = GameManager.getInstance().state.deckType;
       for (let i = 0; i < emptyCount; i++) {
-        const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+        const color = this.getRandomColor(deckType);
         const targetRow = emptyCount - 1 - i;
         
         // 5% chance of spawning an edition card

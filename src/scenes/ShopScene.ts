@@ -19,10 +19,20 @@ interface ShopTarotSlot {
   cardContainer?: Phaser.GameObjects.Container;
 }
 
+interface ShopVoucherSlot {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  purchased: boolean;
+  cardContainer?: Phaser.GameObjects.Container;
+}
+
 export class ShopScene extends Phaser.Scene {
   private gameManager!: GameManager;
   private shopJokers: ShopJokerSlot[] = [];
   private shopTarot: ShopTarotSlot | null = null;
+  private shopVoucher: ShopVoucherSlot | null = null;
   
   // Reroll mechanics
   private rerollCost = 2;
@@ -44,7 +54,8 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     this.gameManager = GameManager.getInstance();
-    this.rerollCost = 2; // Reset reroll cost
+    const hasDiscount = this.gameManager.state.boughtVouchers.includes('reroll_discount');
+    this.rerollCost = hasDiscount ? 1 : 2;
 
     const { width, height } = this.scale;
 
@@ -96,9 +107,10 @@ export class ShopScene extends Phaser.Scene {
 
     this.rebuildActiveJokers();
 
-    // 3. Generate shop items (2 random Jokers + 1 Tarot Card + candy upgrades)
+    // 3. Generate shop items (2 random Jokers + 1 Tarot Card + 1 Voucher + candy upgrades)
     this.generateShopJokers();
     this.generateShopTarot();
+    this.generateShopVoucher();
     this.renderShopItems();
 
     // 4. Render Reroll Button
@@ -215,9 +227,14 @@ export class ShopScene extends Phaser.Scene {
       this.shopTarot.cardContainer = undefined;
     }
 
-    const startX = 80;
+    if (this.shopVoucher && this.shopVoucher.cardContainer) {
+      this.shopVoucher.cardContainer.destroy();
+      this.shopVoucher.cardContainer = undefined;
+    }
+
+    const startX = 50;
     const startY = 380;
-    const spacing = 110;
+    const spacing = 95;
 
     // 1. Render Shop Jokers
     this.shopJokers.forEach((item, index) => {
@@ -287,7 +304,10 @@ export class ShopScene extends Phaser.Scene {
     // 2. Render Shop Tarot
     this.renderShopTarot();
 
-    // 3. Render Candy Upgrades (on the right)
+    // 3. Render Shop Voucher
+    this.renderShopVoucher();
+
+    // 4. Render Candy Upgrades (on the right)
     this.renderCandyUpgrades();
   }
 
@@ -523,11 +543,11 @@ export class ShopScene extends Phaser.Scene {
   private renderShopTarot() {
     if (!this.shopTarot || this.shopTarot.purchased) return;
 
-    const startX = 80;
+    const startX = 50;
     const startY = 380;
     
     // Tarot card is at the third slot (index 2)
-    const x = startX + 2 * 110 + 45;
+    const x = startX + 2 * 95 + 45;
     const y = startY + 67;
 
     const container = this.add.container(x, y);
@@ -666,6 +686,131 @@ export class ShopScene extends Phaser.Scene {
         grid[r][c]!.edition = ed;
       }
     }
+  }
+
+  private generateShopVoucher() {
+    const bought = this.gameManager.state.boughtVouchers || [];
+    const pool = [
+      { id: 'joker_slot', name: 'Khay Joker +1', description: 'Tăng giới hạn Joker lên tối đa 6 ô vĩnh viễn' },
+      { id: 'extra_swap', name: 'Lượt Tráo +1', description: 'Tăng số lượt tráo cơ bản mỗi vòng đấu lên 6' },
+      { id: 'reroll_discount', name: 'Mẹo Reroll', description: 'Reroll giảm giá 50% (khởi đầu từ $1 và tăng $1)' }
+    ];
+
+    const available = pool.filter(v => !bought.includes(v.id));
+
+    if (available.length > 0) {
+      const selected = available[Math.floor(Math.random() * available.length)];
+      this.shopVoucher = {
+        ...selected,
+        price: 10,
+        purchased: false
+      };
+    } else {
+      this.shopVoucher = null;
+    }
+  }
+
+  private renderShopVoucher() {
+    if (!this.shopVoucher || this.shopVoucher.purchased) return;
+
+    const startX = 50;
+    const startY = 380;
+    
+    // Voucher card is at the fourth slot (index 3)
+    const x = startX + 3 * 95 + 45;
+    const y = startY + 67;
+
+    const container = this.add.container(x, y);
+
+    const cardBg = this.add.image(0, 0, 'voucher_card_base');
+    
+    const border = this.add.graphics();
+    border.lineStyle(2, 0x00ffcc, 1);
+    border.strokeRoundedRect(-45, -67, 90, 135, 12);
+
+    const voucherTag = this.add.text(0, -50, 'VOUCHER', {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '9px',
+      fontStyle: 'bold',
+      color: '#00ffcc'
+    }).setOrigin(0.5);
+
+    const nameText = this.add.text(0, -32, this.shopVoucher.name, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffffff'
+    }).setOrigin(0.5);
+
+    const descText = this.add.text(0, 15, this.shopVoucher.description, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '9px',
+      color: '#88aacc',
+      align: 'center',
+      wordWrap: { width: 80 }
+    }).setOrigin(0.5);
+
+    const priceText = this.add.text(0, 52, `MUA: $${this.shopVoucher.price}`, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '11px',
+      fontStyle: 'bold',
+      color: '#ffd700'
+    }).setOrigin(0.5);
+
+    container.add([cardBg, border, voucherTag, nameText, descText, priceText]);
+    container.setSize(90, 135);
+    container.setInteractive({ useHandCursor: true });
+
+    container.on('pointerover', () => {
+      container.setScale(1.05);
+      border.lineStyle(2, 0xffffff, 1);
+      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+    });
+    container.on('pointerout', () => {
+      container.setScale(1.0);
+      border.lineStyle(2, 0x00ffcc, 1);
+      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+    });
+
+    container.on('pointerdown', () => {
+      this.buyVoucher();
+    });
+
+    this.shopVoucher.cardContainer = container;
+  }
+
+  private buyVoucher() {
+    if (!this.shopVoucher) return;
+
+    if (this.gameManager.state.gold < this.shopVoucher.price) {
+      this.showMessage('Bạn không có đủ vàng để mua Voucher này!');
+      return;
+    }
+
+    this.gameManager.state.gold -= this.shopVoucher.price;
+    this.shopVoucher.purchased = true;
+    
+    // Save to bought list
+    this.gameManager.state.boughtVouchers.push(this.shopVoucher.id);
+
+    // Apply Voucher effect
+    if (this.shopVoucher.id === 'joker_slot') {
+      this.gameManager.state.maxJokerSlots = 6;
+      this.gameManager.jokerManager.maxSlots = 6;
+    } else if (this.shopVoucher.id === 'extra_swap') {
+      this.gameManager.state.baseSwaps = 6;
+    } else if (this.shopVoucher.id === 'reroll_discount') {
+      this.rerollCost = Math.max(1, this.rerollCost - 1);
+      this.rerollBtnText.setText(`LÀM MỚI SHOP ($${this.rerollCost})`);
+    }
+
+    if (this.shopVoucher.cardContainer) {
+      this.shopVoucher.cardContainer.destroy();
+      this.shopVoucher.cardContainer = undefined;
+    }
+
+    this.updateGoldUI();
+    this.showMessage(`Đã kích hoạt Voucher ${this.shopVoucher.name}!`);
   }
 
   private updateGoldUI() {

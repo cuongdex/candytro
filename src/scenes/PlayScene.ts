@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { Board } from '../core/Board';
 import { GameManager } from '../core/GameManager';
 import { ScoringEngine } from '../core/Scoring';
-import type { CandyColor, MatchGroup } from '../types/game';
+import type { CandyColor, MatchGroup, CandyState } from '../types/game';
 
 export class PlayScene extends Phaser.Scene {
   private board!: Board;
@@ -46,6 +46,7 @@ export class PlayScene extends Phaser.Scene {
 
   create() {
     this.gameManager = GameManager.getInstance();
+    this.gameManager.jokerManager.maxSlots = this.gameManager.state.maxJokerSlots;
     this.gameManager.startRound();
     this.board = new Board(8, 8);
     
@@ -297,8 +298,8 @@ export class PlayScene extends Phaser.Scene {
     const startY = 80;
     const spacing = 100;
 
-    // Draw 5 Joker Card Slot backgrounds
-    for (let i = 0; i < 5; i++) {
+    // Draw Joker Card Slot backgrounds
+    for (let i = 0; i < this.gameManager.state.maxJokerSlots; i++) {
       const x = startX + i * spacing + 45;
       const y = startY + 67;
 
@@ -525,6 +526,24 @@ export class PlayScene extends Phaser.Scene {
       container.add(txt);
     }
 
+    // 5. Apply Ice Overlay (Frozen)
+    if (state.frozen) {
+      const ice = this.add.graphics();
+      // Light blue semi-transparent overlay
+      ice.fillStyle(0x88ccff, 0.45);
+      ice.fillRoundedRect(-this.cellSize / 2 + 3, -this.cellSize / 2 + 3, this.cellSize - 6, this.cellSize - 6, 8);
+      ice.lineStyle(2.5, 0xddeeff, 0.95);
+      ice.strokeRoundedRect(-this.cellSize / 2 + 3, -this.cellSize / 2 + 3, this.cellSize - 6, this.cellSize - 6, 8);
+      
+      // Draw shiny frost cracks
+      ice.lineStyle(1.5, 0xffffff, 0.7);
+      ice.lineBetween(-15, -15, 10, 10);
+      ice.lineBetween(15, -15, -10, 10);
+      
+      container.add(ice);
+      container.setData('iceGraphics', ice); // Store reference to animate ice shatter
+    }
+
     // Interactive configuration
     container.setSize(this.cellSize - 10, this.cellSize - 10);
     container.setInteractive({ useHandCursor: true });
@@ -573,6 +592,28 @@ export class PlayScene extends Phaser.Scene {
 
     const r = clickedCandy.getData('row') as number;
     const c = clickedCandy.getData('col') as number;
+
+    const state = this.board.grid[r][c];
+    if (state && state.frozen) {
+      const warningText = this.add.text(clickedCandy.x, clickedCandy.y, 'ĐÃ ĐÓNG BĂNG!', {
+        fontFamily: 'Outfit, Roboto, sans-serif',
+        fontSize: '14px',
+        fontStyle: 'bold',
+        color: '#ff3366',
+        backgroundColor: '#0a0a14',
+        padding: { x: 6, y: 3 },
+        shadow: { blur: 4, color: '#000000', fill: true }
+      }).setOrigin(0.5);
+      
+      this.tweens.add({
+        targets: warningText,
+        y: clickedCandy.y - 30,
+        alpha: 0,
+        duration: 800,
+        onComplete: () => warningText.destroy()
+      });
+      return;
+    }
 
     if (this.selectedCandy === null) {
       // First selection
@@ -726,6 +767,27 @@ export class PlayScene extends Phaser.Scene {
     // Process logic explosions & spawn cards
     const explosionResult = this.board.processExplosions(matches);
     const clearedList = explosionResult.cleared;
+    const unfrozenList = explosionResult.unfrozen;
+
+    // Animate ice shatter for newly unfrozen cells
+    unfrozenList.forEach(cell => {
+      const sprite = this.candySprites[cell.row][cell.col];
+      if (sprite) {
+        const ice = sprite.getData('iceGraphics') as Phaser.GameObjects.Graphics;
+        if (ice) {
+          this.tweens.add({
+            targets: ice,
+            alpha: 0,
+            scale: 1.3,
+            duration: 300,
+            onComplete: () => {
+              ice.destroy();
+              sprite.setData('iceGraphics', null);
+            }
+          });
+        }
+      }
+    });
 
     // Clear matches visual effect and log score addition
     const matchGroupsData = matches.map(m => ({ color: m.color, size: m.candies.length }));
@@ -932,7 +994,7 @@ export class PlayScene extends Phaser.Scene {
     };
 
     // Construct the new state of the sprite grid after falls and spawns
-    const newCandySprites: (Phaser.GameObjects.Image | null)[][] = Array(8).fill(null).map(() => Array(8).fill(null));
+    const newCandySprites: (Phaser.GameObjects.Container | null)[][] = Array(8).fill(null).map(() => Array(8).fill(null));
 
     // Keep track of which coordinates are falling (meaning they are from positions)
     const fallingFrom = new Set<string>();
@@ -959,20 +1021,17 @@ export class PlayScene extends Phaser.Scene {
       
       sprite.y = startY;
 
-          this.tweens.add({
-            targets: sprite,
-            y: targetY,
-            duration: 350,
-            ease: 'Bounce.easeOut',
-            onComplete: checkComplete
-          });
-        }
+      this.tweens.add({
+        targets: sprite,
+        y: targetY,
+        duration: 350,
+        ease: 'Bounce.easeOut',
+        onComplete: checkComplete
       });
     });
 
     // 3. Instantiate spawn sprites and trigger slide down
     refill.spawns.forEach(spawn => {
-      const x = this.boardX + spawn.col * this.cellSize + this.cellSize / 2;
       // Start higher up based on target row to prevent clipping overlaps
       const startY = this.boardY - this.cellSize - (spawn.toRow * this.cellSize);
       const targetY = this.boardY + spawn.toRow * this.cellSize + this.cellSize / 2;
@@ -1050,6 +1109,102 @@ export class PlayScene extends Phaser.Scene {
             }
           });
 
+          // Custom special effects for matching candies
+          if (cell.state.special === 'striped_h') {
+            const laser = this.add.graphics();
+            laser.lineStyle(6, 0xffffff, 1);
+            laser.strokeLineShape(new Phaser.Geom.Line(
+              this.boardX, sprite.y,
+              this.boardX + 8 * this.cellSize, sprite.y
+            ));
+            laser.lineStyle(2, this.getCandyHexColor(cell.state.color), 0.8);
+            laser.strokeLineShape(new Phaser.Geom.Line(
+              this.boardX, sprite.y,
+              this.boardX + 8 * this.cellSize, sprite.y
+            ));
+            this.tweens.add({
+              targets: laser,
+              alpha: 0,
+              scaleY: 0.1,
+              duration: 350,
+              onComplete: () => laser.destroy()
+            });
+          } else if (cell.state.special === 'striped_v') {
+            const laser = this.add.graphics();
+            laser.lineStyle(6, 0xffffff, 1);
+            laser.strokeLineShape(new Phaser.Geom.Line(
+              sprite.x, this.boardY,
+              sprite.x, this.boardY + 8 * this.cellSize
+            ));
+            laser.lineStyle(2, this.getCandyHexColor(cell.state.color), 0.8);
+            laser.strokeLineShape(new Phaser.Geom.Line(
+              sprite.x, this.boardY,
+              sprite.x, this.boardY + 8 * this.cellSize
+            ));
+            this.tweens.add({
+              targets: laser,
+              alpha: 0,
+              scaleX: 0.1,
+              duration: 350,
+              onComplete: () => laser.destroy()
+            });
+          } else if (cell.state.special === 'wrapped') {
+            const wave = this.add.graphics();
+            const color = this.getCandyHexColor(cell.state.color);
+            this.tweens.addCounter({
+              from: 10,
+              to: 120,
+              duration: 400,
+              onUpdate: (tween) => {
+                const radius = tween.getValue() as number;
+                const alpha = 1 - (radius - 10) / 110;
+                wave.clear();
+                wave.lineStyle(4, color, alpha);
+                wave.strokeCircle(sprite.x, sprite.y, radius);
+              },
+              onComplete: () => {
+                wave.destroy();
+              }
+            });
+          } else if (cell.state.special === 'color_bomb') {
+            const bombColor = cell.state.color;
+            const beam = this.add.graphics();
+            const targetCoords: { x: number; y: number }[] = [];
+            cleared.forEach(otherCell => {
+              if (otherCell.state.color === bombColor && (otherCell.row !== cell.row || otherCell.col !== cell.col)) {
+                const otherSprite = this.candySprites[otherCell.row][otherCell.col];
+                if (otherSprite) {
+                  targetCoords.push({ x: otherSprite.x, y: otherSprite.y });
+                }
+              }
+            });
+            
+            if (targetCoords.length > 0) {
+              this.tweens.addCounter({
+                from: 0,
+                to: 100,
+                duration: 350,
+                onUpdate: (tween) => {
+                  const val = tween.getValue() as number;
+                  const alpha = 1 - val / 100;
+                  beam.clear();
+                  targetCoords.forEach(target => {
+                    beam.lineStyle(3, 0xffffff, alpha);
+                    const currentX = sprite.x + (target.x - sprite.x) * (val / 100);
+                    const currentY = sprite.y + (target.y - sprite.y) * (val / 100);
+                    beam.lineBetween(sprite.x, sprite.y, currentX, currentY);
+                    
+                    beam.lineStyle(1, 0xaa33ff, alpha * 0.7);
+                    beam.lineBetween(sprite.x, sprite.y, target.x, target.y);
+                  });
+                },
+                onComplete: () => {
+                  beam.destroy();
+                }
+              });
+            }
+          }
+
           // Scale and fade candy out
           this.tweens.add({
             targets: sprite,
@@ -1066,7 +1221,6 @@ export class PlayScene extends Phaser.Scene {
           });
         }
       });
-    });
 
     if (particlesCount === 0) {
       onComplete();

@@ -5,6 +5,7 @@ export interface CandyState {
   enhancement: 'none' | 'gold' | 'glass' | 'lucky' | 'steel' | 'bonus';
   edition: 'standard' | 'foil' | 'holographic' | 'polychrome';
   special: 'normal' | 'striped_h' | 'striped_v' | 'wrapped' | 'color_bomb';
+  frozen?: boolean;
 }
 
 export interface CandyTypeInfo {
@@ -50,4 +51,8 @@ export interface GameState {
   candyLevels: Record<CandyColor, number>;
   activeJokers: string[]; // IDs of active jokers
   boardGrid: (CandyState | null)[][] | null;
+  deckType: 'classic' | 'gold' | 'love';
+  maxJokerSlots: number;
+  baseSwaps: number;
+  boughtVouchers: string[];
 }

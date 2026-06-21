@@ -19,7 +19,11 @@ export class GameManager {
       purple: 1
     },
     activeJokers: [],
-    boardGrid: null
+    boardGrid: null,
+    deckType: 'classic',
+    maxJokerSlots: 5,
+    baseSwaps: 5,
+    boughtVouchers: []
   };
 
   public jokerManager: JokerManager;
@@ -35,10 +39,14 @@ export class GameManager {
     return GameManager.instance;
   }
 
-  public startNewRun(): void {
+  public startNewRun(deckType?: 'classic' | 'gold' | 'love'): void {
+    const chosenDeck = deckType || 'classic';
+    const startingGold = chosenDeck === 'gold' ? 15 : 4;
+    const swaps = chosenDeck === 'gold' ? 4 : 5;
+
     this.state = {
-      gold: 4,
-      swapsRemaining: 5,
+      gold: startingGold,
+      swapsRemaining: swaps,
       scoreTarget: 300,
       scoreCurrent: 0,
       ante: 1,
@@ -51,8 +59,13 @@ export class GameManager {
         purple: 1
       },
       activeJokers: [],
-      boardGrid: null
+      boardGrid: null,
+      deckType: chosenDeck,
+      maxJokerSlots: 5,
+      baseSwaps: swaps,
+      boughtVouchers: []
     };
+    this.jokerManager.maxSlots = 5; // Reset Joker slots
     this.jokerManager.setJokers([]);
     this.startRound();
   }
@@ -60,7 +73,7 @@ export class GameManager {
   public startRound(): void {
     this.state.scoreTarget = this.calculateTargetScore(this.state.ante, this.state.round);
     this.state.scoreCurrent = 0;
-    this.state.swapsRemaining = 5; // Default 5 swaps per round
+    this.state.swapsRemaining = this.state.baseSwaps;
     
     // Sync active jokers from manager to state
     this.state.activeJokers = this.jokerManager.getJokerIds();

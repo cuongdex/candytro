@@ -241,5 +241,29 @@ export class BootScene extends Phaser.Scene {
 
     tarotGraphics.generateTexture('tarot_card_base', tarotW, tarotH);
     tarotGraphics.destroy();
+
+    // 4. Voucher Card base texture
+    const voucherW = 90;
+    const voucherH = 135;
+    const voucherGraphics = this.add.graphics();
+
+    // Card shadow
+    voucherGraphics.fillStyle(0x000000, 0.5);
+    voucherGraphics.fillRoundedRect(3, 3, voucherW - 6, voucherH - 6, 12);
+
+    // Card background (sleek metallic dark grey/silver)
+    voucherGraphics.fillStyle(0x1a2129, 0.95);
+    voucherGraphics.fillRoundedRect(0, 0, voucherW - 2, voucherH - 2, 12);
+
+    // Metallic silver/cyan border
+    voucherGraphics.lineStyle(2.5, 0x00ffcc, 1); // Neon cyan border
+    voucherGraphics.strokeRoundedRect(0, 0, voucherW - 2, voucherH - 2, 12);
+    
+    // Inner design
+    voucherGraphics.lineStyle(1, 0x334e5a, 0.5);
+    voucherGraphics.strokeRoundedRect(4, 4, voucherW - 10, voucherH - 10, 8);
+
+    voucherGraphics.generateTexture('voucher_card_base', voucherW, voucherH);
+    voucherGraphics.destroy();
   }
 }
