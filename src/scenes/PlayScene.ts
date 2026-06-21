@@ -24,6 +24,8 @@ export class PlayScene extends Phaser.Scene {
   private swapsText!: Phaser.GameObjects.Text;
   private goldText!: Phaser.GameObjects.Text;
   private progressBar!: Phaser.GameObjects.Graphics;
+  private bossTitleText?: Phaser.GameObjects.Text;
+  private bossDescText?: Phaser.GameObjects.Text;
 
   // Chips & Mult interactive boxes (Balatro Style!)
   private chipsBox!: Phaser.GameObjects.Container;
@@ -176,13 +178,16 @@ export class PlayScene extends Phaser.Scene {
         ice: { name: 'ICE (Băng)', desc: 'Đóng băng 4 kẹo ngẫu nhiên' },
         needle: { name: 'NEEDLE (Kim)', desc: 'Giới hạn duy nhất 1 lượt tráo kẹo' },
         pillar: { name: 'PILLAR (Cột)', desc: 'Khóa hàng 3 & hàng 4 trên bảng đấu' },
-        flint: { name: 'FLINT (Đá Lửa)', desc: 'Giảm 50% điểm cơ bản của kẹo' }
+        flint: { name: 'FLINT (Đá Lửa)', desc: 'Giảm 50% điểm cơ bản của kẹo' },
+        silence: { name: 'SILENCE (Câm Lặng)', desc: 'Vô hiệu hóa ngẫu nhiên 1 ô Joker' },
+        chameleon: { name: 'CHAMELEON (Tắc Kè)', desc: 'Màu kẹo bị vô hiệu hóa đổi ngẫu nhiên sau mỗi lượt tráo' },
+        tax: { name: 'TAX (Thuế)', desc: 'Mỗi lượt tráo tốn $1 Vàng. Nếu không có Vàng, lượt đó được 0 điểm' }
       };
 
       const bType = this.gameManager.state.bossType || 'ice';
-      const bInfo = bossNames[bType];
+      const bInfo = bossNames[bType as keyof typeof bossNames] || bossNames.ice;
 
-      const bossTitleLabel = this.add.text(175, 128, `BOSS: ${bInfo.name}`, {
+      this.bossTitleText = this.add.text(175, 128, `BOSS: ${bInfo.name}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '18px',
         fontStyle: 'bold',
@@ -202,16 +207,16 @@ export class PlayScene extends Phaser.Scene {
         finalDesc += ` & Vô hiệu kẹo ${colorNames[this.gameManager.state.bossDebuffColor]}`;
       }
 
-      this.add.text(175, 145, finalDesc, {
+      this.bossDescText = this.add.text(175, 145, finalDesc, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '13px',
         color: '#ffaaaa',
         align: 'center',
         wordWrap: { width: 280 }
       }).setOrigin(0.5);
 
       this.tweens.add({
-        targets: bossTitleLabel,
+        targets: this.bossTitleText,
         alpha: 0.5,
         duration: 800,
         yoyo: true,
@@ -390,10 +395,27 @@ export class PlayScene extends Phaser.Scene {
       const y = startY + 67;
 
       const slot = this.add.graphics();
-      slot.fillStyle(0x09090f, 0.5);
-      slot.fillRoundedRect(x - 45, y - 67, 90, 135, 12);
-      slot.lineStyle(1.5, 0x222233, 1);
-      slot.strokeRoundedRect(x - 45, y - 67, 90, 135, 12);
+      const isDisabled = this.gameManager.state.round === 3 && 
+                         this.gameManager.state.bossType === 'silence' && 
+                         this.gameManager.state.disabledJokerIndices && 
+                         this.gameManager.state.disabledJokerIndices.includes(i);
+
+      if (isDisabled) {
+        slot.fillStyle(0x22050e, 0.6);
+        slot.fillRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.lineStyle(1.5, 0xff0055, 0.8);
+        slot.strokeRoundedRect(x - 45, y - 67, 90, 135, 12);
+        
+        // Draw a lock icon in the empty slot
+        this.add.text(x, y, '🔒', {
+          fontSize: '24px'
+        }).setOrigin(0.5);
+      } else {
+        slot.fillStyle(0x09090f, 0.5);
+        slot.fillRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.lineStyle(1.5, 0x222233, 1);
+        slot.strokeRoundedRect(x - 45, y - 67, 90, 135, 12);
+      }
 
       // Dash border to show it is a placeholder slot
       this.jokerSlots.push(slot);
@@ -540,7 +562,32 @@ export class PlayScene extends Phaser.Scene {
         }
       }
 
+      const isDisabled = this.gameManager.state.round === 3 && 
+                         this.gameManager.state.bossType === 'silence' && 
+                         this.gameManager.state.disabledJokerIndices && 
+                         this.gameManager.state.disabledJokerIndices.includes(index);
+
+      let lockOverlay: Phaser.GameObjects.Text | null = null;
+      if (isDisabled) {
+        cardBg.setTint(0x333333);
+        nameText.setColor('#666666');
+        descText.setColor('#444444');
+        rarityText.setColor('#444444');
+        
+        lockOverlay = this.add.text(0, 0, '🔒 KHÓA', {
+          fontFamily: 'Outfit, Roboto, sans-serif',
+          fontSize: '16px',
+          fontStyle: 'bold',
+          color: '#ff3366',
+          backgroundColor: '#000000cc',
+          padding: { x: 6, y: 3 }
+        }).setOrigin(0.5);
+      }
+
       container.add([cardBg, border, nameText, descText, rarityText, ...editionElements]);
+      if (lockOverlay) {
+        container.add(lockOverlay);
+      }
  
       // Make card interactive for drag-and-drop
       container.setSize(90, 135);
@@ -1108,7 +1155,32 @@ export class PlayScene extends Phaser.Scene {
     this.chipsText.setText(this.formatNumber(finalResult.chips));
     this.multText.setText(this.formatNumber(finalResult.mult));
     
-    const finalScore = finalResult.chips * finalResult.mult;
+    let finalScore = finalResult.chips * finalResult.mult;
+    let isTaxPenalty = false;
+
+    // Apply Boss debuff effects for chameleon and tax
+    if (this.gameManager.state.round === 3) {
+      if (this.gameManager.state.bossType === 'chameleon') {
+        const colors: CandyColor[] = ['red', 'blue', 'green', 'yellow', 'purple'];
+        const oldColor = this.gameManager.state.bossDebuffColor;
+        let newColor = oldColor;
+        while (newColor === oldColor) {
+          newColor = colors[Math.floor(Math.random() * colors.length)];
+        }
+        this.gameManager.state.bossDebuffColor = newColor;
+        this.rebuildCandySprites();
+        this.updateHUDText();
+      } else if (this.gameManager.state.bossType === 'tax') {
+        if (this.gameManager.state.gold > 0) {
+          this.gameManager.state.gold -= 1;
+          this.animateGoldGain(-1);
+        } else {
+          isTaxPenalty = true;
+          finalScore = 0;
+        }
+      }
+    }
+
     this.scoringPanelText.setText(this.formatNumber(finalScore));
 
     if (finalResult.goldAdded > 0) {
@@ -1131,19 +1203,21 @@ export class PlayScene extends Phaser.Scene {
       ease: 'Back.easeOut',
       onComplete: () => {
         // Floating text flying to target score
-        const floatingScore = this.add.text(this.boardX + 240, 705, `+${this.formatNumber(finalScore)}`, {
+        const txt = isTaxPenalty ? 'CHƯA NỘP THUẾ (+0)' : `+${this.formatNumber(finalScore)}`;
+        const color = isTaxPenalty ? '#ff3366' : '#00ffcc';
+        const floatingScore = this.add.text(this.boardX + 240, 705, txt, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '34px',
+          fontSize: isTaxPenalty ? '22px' : '34px',
           fontStyle: 'bold',
-          color: '#00ffcc',
-          shadow: { blur: 15, color: '#00ffcc', fill: true }
+          color: color,
+          shadow: { blur: 15, color: color, fill: true }
         }).setOrigin(0.5);
 
         this.tweens.add({
           targets: floatingScore,
           x: 180,
           y: 270,
-          scale: 0.7,
+          scale: isTaxPenalty ? 0.9 : 0.7,
           alpha: 0.3,
           duration: 800,
           ease: 'Cubic.easeInOut',
@@ -1544,11 +1618,14 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private animateGoldGain(amount: number) {
-    const goldFloat = this.add.text(175, 410, `+$${amount}`, {
+    const isNegative = amount < 0;
+    const txt = isNegative ? `-$${Math.abs(amount)}` : `+$${amount}`;
+    const color = isNegative ? '#ff3366' : '#ffd700';
+    const goldFloat = this.add.text(175, 410, txt, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '28px',
       fontStyle: 'bold',
-      color: '#ffd700'
+      color: color
     }).setOrigin(0.5);
 
     this.tweens.add({
@@ -1566,6 +1643,33 @@ export class PlayScene extends Phaser.Scene {
     this.targetText.setText(this.formatNumber(this.gameManager.state.scoreTarget));
     this.swapsText.setText(`LƯỢT TRÁO: ${this.gameManager.state.swapsRemaining}`);
     this.goldText.setText(`VÀNG: $${this.gameManager.state.gold}`);
+
+    if (this.gameManager.state.round === 3 && this.bossDescText) {
+      const bossNames = {
+        ice: { name: 'ICE (Băng)', desc: 'Đóng băng 4 kẹo ngẫu nhiên' },
+        needle: { name: 'NEEDLE (Kim)', desc: 'Giới hạn duy nhất 1 lượt tráo kẹo' },
+        pillar: { name: 'PILLAR (Cột)', desc: 'Khóa hàng 3 & hàng 4 trên bảng đấu' },
+        flint: { name: 'FLINT (Đá Lửa)', desc: 'Giảm 50% điểm cơ bản của kẹo' },
+        silence: { name: 'SILENCE (Câm Lặng)', desc: 'Vô hiệu hóa ngẫu nhiên 1 ô Joker' },
+        chameleon: { name: 'CHAMELEON (Tắc Kè)', desc: 'Màu kẹo bị vô hiệu hóa đổi ngẫu nhiên sau mỗi lượt tráo' },
+        tax: { name: 'TAX (Thuế)', desc: 'Mỗi lượt tráo tốn $1 Vàng. Nếu không có Vàng, lượt đó được 0 điểm' }
+      };
+
+      const bType = this.gameManager.state.bossType || 'ice';
+      const bInfo = bossNames[bType as keyof typeof bossNames] || bossNames.ice;
+      let finalDesc = bInfo.desc;
+      if (this.gameManager.state.bossDebuffColor) {
+        const colorNames: Record<CandyColor, string> = {
+          red: 'Đỏ',
+          blue: 'Xanh dương',
+          green: 'Xanh lá',
+          yellow: 'Vàng',
+          purple: 'Tím'
+        };
+        finalDesc += ` & Vô hiệu kẹo ${colorNames[this.gameManager.state.bossDebuffColor]}`;
+      }
+      this.bossDescText.setText(finalDesc);
+    }
   }
 
   private updateProgressBar() {

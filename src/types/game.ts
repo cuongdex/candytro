@@ -56,5 +56,6 @@ export interface GameState {
   baseSwaps: number;
   boughtVouchers: string[];
   bossDebuffColor: CandyColor | null;
-  bossType: 'ice' | 'needle' | 'pillar' | 'flint' | null;
+  bossType: 'ice' | 'needle' | 'pillar' | 'flint' | 'silence' | 'chameleon' | 'tax' | null;
+  disabledJokerIndices: number[] | null;
 }
