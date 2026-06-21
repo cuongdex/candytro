@@ -79,7 +79,7 @@ export class ShopScene extends Phaser.Scene {
     // Header Title
     this.add.text(width / 2, 40, 'CỬA HÀNG BÙA CHÚ', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '32px',
+      fontSize: '38px',
       fontStyle: 'bold',
       color: '#ffd700',
       shadow: { blur: 10, color: '#ffd700', fill: true }
@@ -88,7 +88,7 @@ export class ShopScene extends Phaser.Scene {
     // Display Gold
     this.goldText = this.add.text(width - 50, 40, `VÀNG: $${this.gameManager.state.gold}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '22px',
+      fontSize: '26px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(1, 0.5);
@@ -96,14 +96,14 @@ export class ShopScene extends Phaser.Scene {
     // Message HUD
     this.messageText = this.add.text(width / 2, 90, 'Chào mừng đến Cửa hàng! Hãy mua Joker để gia tăng sức mạnh.', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '14px',
+      fontSize: '18px',
       color: '#888899'
     }).setOrigin(0.5);
 
     // 2. Render Player Active Jokers (Top portion)
     this.add.text(100, 110, 'Joker Đang Sở Hữu (Bấm để Bán):', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '20px',
       fontStyle: 'bold',
       color: '#888899'
     });
@@ -170,14 +170,14 @@ export class ShopScene extends Phaser.Scene {
 
       const nameText = this.add.text(0, -50, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
       const descText = this.add.text(0, 15, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         color: '#888899',
         align: 'center',
         wordWrap: { width: 80 }
@@ -185,7 +185,7 @@ export class ShopScene extends Phaser.Scene {
 
       const sellValueText = this.add.text(0, 52, `BÁN: $${joker.sellValue}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '10px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#ff3366'
       }).setOrigin(0.5);
@@ -215,7 +215,7 @@ export class ShopScene extends Phaser.Scene {
 
         const edTxt = this.add.text(0, -35, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '9px',
+          fontSize: '14px',
           fontStyle: 'bold',
           color: '#' + edColor.toString(16).padStart(6, '0'),
           backgroundColor: '#05050a',
@@ -383,14 +383,14 @@ export class ShopScene extends Phaser.Scene {
 
       const nameText = this.add.text(0, -50, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
       const descText = this.add.text(0, 15, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         color: '#888899',
         align: 'center',
         wordWrap: { width: 80 }
@@ -398,7 +398,7 @@ export class ShopScene extends Phaser.Scene {
 
       const priceText = this.add.text(0, 52, `MUA: $${item.price}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '15px',
         fontStyle: 'bold',
         color: '#ffd700'
       }).setOrigin(0.5);
@@ -428,7 +428,7 @@ export class ShopScene extends Phaser.Scene {
 
         const edTxt = this.add.text(0, -35, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
-          fontSize: '9px',
+          fontSize: '14px',
           fontStyle: 'bold',
           color: '#' + edColor.toString(16).padStart(6, '0'),
           backgroundColor: '#05050a',
@@ -534,7 +534,7 @@ export class ShopScene extends Phaser.Scene {
 
       const titleText = this.add.text(0, 0, `NÂNG CẤP`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '9px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#888899'
       }).setOrigin(0.5);
@@ -542,7 +542,7 @@ export class ShopScene extends Phaser.Scene {
       const lvl = this.gameManager.state.candyLevels[col.key];
       const levelText = this.add.text(0, 15, `Cấp ${lvl}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '13px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: col.hex
       }).setOrigin(0.5);
@@ -550,7 +550,7 @@ export class ShopScene extends Phaser.Scene {
       const cost = this.gameManager.getCandyUpgradeCost(col.key);
       const costText = this.add.text(0, 48, `Giá: $${cost}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '15px',
         fontStyle: 'bold',
         color: '#ffd700'
       }).setOrigin(0.5);
@@ -641,7 +641,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.rerollBtnText = this.add.text(220, btnY + btnH / 2, `LÀM MỚI SHOP ($${this.rerollCost})`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '13px',
+      fontSize: '16px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
@@ -704,7 +704,7 @@ export class ShopScene extends Phaser.Scene {
 
     this.add.text(width - 150, btnY + btnH / 2, 'VÒNG TIẾP THEO', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '16px',
+      fontSize: '20px',
       fontStyle: 'bold',
       color: '#ff0055'
     }).setOrigin(0.5);
@@ -793,21 +793,21 @@ export class ShopScene extends Phaser.Scene {
     const tagColor = this.shopTarot.type === 'pack' ? '#ffaa00' : '#aa33ff';
     const tarotTag = this.add.text(0, -50, this.shopTarot.type === 'pack' ? 'BOOSTER' : 'TAROT', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '9px',
+      fontSize: '14px',
       fontStyle: 'bold',
       color: tagColor
     }).setOrigin(0.5);
 
     const nameText = this.add.text(0, -32, this.shopTarot.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '11px',
+      fontSize: '16px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
 
     const descText = this.add.text(0, 15, this.shopTarot.description, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '9px',
+      fontSize: '14px',
       color: this.shopTarot.type === 'pack' ? '#ffeedd' : '#bfa3ff',
       align: 'center',
       wordWrap: { width: 80 }
@@ -815,7 +815,7 @@ export class ShopScene extends Phaser.Scene {
 
     const priceText = this.add.text(0, 52, `MUA: $${this.shopTarot.price}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '11px',
+      fontSize: '15px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
@@ -893,7 +893,7 @@ export class ShopScene extends Phaser.Scene {
     const packName = packId === 'tarot_pack' ? 'GÓI THÈ BÀI PHÉP (TAROT PACK)' : 'GÓI THÈ HÀNH TINH (CELESTIAL PACK)';
     const title = this.add.text(width / 2, 120, packName, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '28px',
+      fontSize: '34px',
       fontStyle: 'bold',
       color: '#ffd700',
       shadow: { blur: 10, color: '#ffd700', fill: true }
@@ -902,7 +902,7 @@ export class ShopScene extends Phaser.Scene {
 
     const subtitle = this.add.text(width / 2, 160, 'CHỌN 1 TRONG 3 LÁ BÀI DƯỚI ĐÂY', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '14px',
+      fontSize: '18px',
       color: '#888899'
     }).setOrigin(0.5);
     modal.add(subtitle);
@@ -953,14 +953,14 @@ export class ShopScene extends Phaser.Scene {
       const tagText = card.isTarot ? 'TAROT' : 'PLANET';
       const typeText = this.add.text(0, -80, tagText, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '15px',
         fontStyle: 'bold',
         color: '#' + card.color.toString(16).padStart(6, '0')
       }).setOrigin(0.5);
 
       const nameText = this.add.text(0, -50, card.name, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '13px',
+        fontSize: '18px',
         fontStyle: 'bold',
         color: '#ffffff',
         align: 'center',
@@ -969,7 +969,7 @@ export class ShopScene extends Phaser.Scene {
 
       const descText = this.add.text(0, 15, card.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '10px',
+        fontSize: '15px',
         color: '#ddddff',
         align: 'center',
         wordWrap: { width: 120 }
@@ -977,7 +977,7 @@ export class ShopScene extends Phaser.Scene {
 
       const useText = this.add.text(0, 75, 'CHỌN LÁ BÀI', {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '11px',
+        fontSize: '16px',
         fontStyle: 'bold',
         color: '#00ffcc'
       }).setOrigin(0.5);
@@ -1119,21 +1119,21 @@ export class ShopScene extends Phaser.Scene {
 
     const voucherTag = this.add.text(0, -50, 'VOUCHER', {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '9px',
+      fontSize: '14px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
 
     const nameText = this.add.text(0, -32, this.shopVoucher.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '11px',
+      fontSize: '16px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
 
     const descText = this.add.text(0, 15, this.shopVoucher.description, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '9px',
+      fontSize: '14px',
       color: '#88aacc',
       align: 'center',
       wordWrap: { width: 80 }
@@ -1141,7 +1141,7 @@ export class ShopScene extends Phaser.Scene {
 
     const priceText = this.add.text(0, 52, `MUA: $${this.shopVoucher.price}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '11px',
+      fontSize: '15px',
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
