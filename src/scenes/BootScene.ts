@@ -205,8 +205,8 @@ export class BootScene extends Phaser.Scene {
     cellGraphics.destroy();
 
     // 2. Joker Card base texture
-    const cardW = 90;
-    const cardH = 135;
+    const cardW = 116;
+    const cardH = 174;
     const cardGraphics = this.add.graphics();
 
     // Card shadow
@@ -229,8 +229,8 @@ export class BootScene extends Phaser.Scene {
     cardGraphics.destroy();
 
     // 3. Tarot Card base texture
-    const tarotW = 90;
-    const tarotH = 135;
+    const tarotW = 116;
+    const tarotH = 174;
     const tarotGraphics = this.add.graphics();
 
     // Card shadow
@@ -253,8 +253,8 @@ export class BootScene extends Phaser.Scene {
     tarotGraphics.destroy();
 
     // 4. Voucher Card base texture
-    const voucherW = 90;
-    const voucherH = 135;
+    const voucherW = 116;
+    const voucherH = 174;
     const voucherGraphics = this.add.graphics();
 
     // Card shadow

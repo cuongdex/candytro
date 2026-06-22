@@ -385,14 +385,14 @@ export class PlayScene extends Phaser.Scene {
   }
 
   private createJokersHUD() {
-    const startX = 380;
-    const startY = 80;
-    const spacing = 100;
+    const startX = 360;
+    const startY = 20;
+    const spacing = 108;
 
     // Draw Joker Card Slot backgrounds
     for (let i = 0; i < this.gameManager.state.maxJokerSlots; i++) {
-      const x = startX + i * spacing + 45;
-      const y = startY + 67;
+      const x = startX + i * spacing + 58;
+      const y = startY + 87;
 
       const slot = this.add.graphics();
       const isDisabled = this.gameManager.state.round === 3 && 
@@ -402,9 +402,9 @@ export class PlayScene extends Phaser.Scene {
 
       if (isDisabled) {
         slot.fillStyle(0x22050e, 0.6);
-        slot.fillRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.fillRoundedRect(x - 58, y - 87, 116, 174, 12);
         slot.lineStyle(1.5, 0xff0055, 0.8);
-        slot.strokeRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.strokeRoundedRect(x - 58, y - 87, 116, 174, 12);
         
         // Draw a lock icon in the empty slot
         this.add.text(x, y, '🔒', {
@@ -412,9 +412,9 @@ export class PlayScene extends Phaser.Scene {
         }).setOrigin(0.5);
       } else {
         slot.fillStyle(0x09090f, 0.5);
-        slot.fillRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.fillRoundedRect(x - 58, y - 87, 116, 174, 12);
         slot.lineStyle(1.5, 0x222233, 1);
-        slot.strokeRoundedRect(x - 45, y - 67, 90, 135, 12);
+        slot.strokeRoundedRect(x - 58, y - 87, 116, 174, 12);
       }
 
       // Dash border to show it is a placeholder slot
@@ -429,15 +429,15 @@ export class PlayScene extends Phaser.Scene {
     this.jokerCards.forEach(c => c.destroy());
     this.jokerCards = [];
 
-    const startX = 380;
-    const startY = 80;
-    const spacing = 100;
+    const startX = 360;
+    const startY = 20;
+    const spacing = 108;
 
     const activeJokers = this.gameManager.jokerManager.getJokers();
 
     activeJokers.forEach((joker, index) => {
-      const x = startX + index * spacing + 45;
-      const y = startY + 67;
+      const x = startX + index * spacing + 58;
+      const y = startY + 87;
 
       const container = this.add.container(x, y);
 
@@ -461,7 +461,7 @@ export class PlayScene extends Phaser.Scene {
       const colorNum = rarityColorsNumeric[joker.rarity] || 0xffffff;
       const colorStr = rarityColorsStr[joker.rarity] || '#ffffff';
       border.lineStyle(2, colorNum, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
 
       if (joker.rarity === 'legendary') {
         this.tweens.add({
@@ -477,7 +477,7 @@ export class PlayScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -50, shortName, {
+      const nameText = this.add.text(0, -68, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
@@ -485,15 +485,15 @@ export class PlayScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       // Shorten description or fit it in the card
-      const descText = this.add.text(0, 15, joker.description, {
+      const descText = this.add.text(0, 10, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
         align: 'center',
-        wordWrap: { width: 80 }
+        wordWrap: { width: 104 }
       }).setOrigin(0.5);
 
-      const rarityText = this.add.text(0, 52, joker.rarity.toUpperCase(), {
+      const rarityText = this.add.text(0, 70, joker.rarity.toUpperCase(), {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         fontStyle: 'bold',
@@ -520,10 +520,10 @@ export class PlayScene extends Phaser.Scene {
 
         const edBorder = this.add.graphics();
         edBorder.lineStyle(2, edColor, 0.85);
-        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
         editionElements.push(edBorder);
 
-        const edTxt = this.add.text(0, -35, edLabel, {
+        const edTxt = this.add.text(0, -48, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
           fontSize: '14px',
           fontStyle: 'bold',
@@ -546,7 +546,7 @@ export class PlayScene extends Phaser.Scene {
                 if (colorObj) {
                   edBorder.clear();
                   edBorder.lineStyle(2.5, colorObj.color, 1);
-                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                  edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
                 }
               }
             }
@@ -590,7 +590,7 @@ export class PlayScene extends Phaser.Scene {
       }
  
       // Make card interactive for drag-and-drop
-      container.setSize(90, 135);
+      container.setSize(116, 174);
       container.setInteractive({ useHandCursor: true, draggable: true });
  
       // Store index on container
@@ -611,7 +611,7 @@ export class PlayScene extends Phaser.Scene {
         container.setScale(1.1);
         border.clear();
         border.lineStyle(3, 0x00ffcc, 1);
-        border.strokeRoundedRect(-45, -67, 90, 135, 12);
+        border.strokeRoundedRect(-58, -87, 116, 174, 12);
       });
  
       container.on('drag', (_pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
@@ -619,15 +619,15 @@ export class PlayScene extends Phaser.Scene {
         // Keep y near the slot area
         container.y = Phaser.Math.Clamp(dragY, y - 20, y + 20);
       });
-
+ 
       container.on('dragend', () => {
         container.setScale(1.0);
         
         // Find which slot is closest
-        const relativeX = container.x - startX - 45;
+        const relativeX = container.x - startX - 58;
         let targetIndex = Math.round(relativeX / spacing);
         targetIndex = Phaser.Math.Clamp(targetIndex, 0, activeJokers.length - 1);
-
+ 
         const currentIndex = container.getData('index') as number;
         if (targetIndex !== currentIndex) {
           // Swap positions in Manager
@@ -635,11 +635,11 @@ export class PlayScene extends Phaser.Scene {
           // Sync state
           this.gameManager.state.activeJokers = this.gameManager.jokerManager.getJokerIds();
         }
-
+ 
         // Animate all cards back to their proper slots
         this.rebuildJokerCards();
       });
-
+ 
       this.jokerCards.push(container);
     });
   }

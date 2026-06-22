@@ -130,15 +130,15 @@ export class ShopScene extends Phaser.Scene {
     this.activeJokerCards.forEach(c => c.destroy());
     this.activeJokerCards = [];
 
-    const startX = 100;
-    const startY = 140;
-    const spacing = 100;
+    const startX = 80;
+    const startY = 120;
+    const spacing = 120;
 
     const currentJokers = this.gameManager.jokerManager.getJokers();
 
     currentJokers.forEach((joker, index) => {
-      const x = startX + index * spacing + 45;
-      const y = startY + 67;
+      const x = startX + index * spacing + 58;
+      const y = startY + 87;
 
       const container = this.add.container(x, y);
 
@@ -153,7 +153,7 @@ export class ShopScene extends Phaser.Scene {
       };
       const color = rarityColors[joker.rarity] || 0xffffff;
       border.lineStyle(2, color, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
 
       if (joker.rarity === 'legendary') {
         this.tweens.add({
@@ -168,22 +168,22 @@ export class ShopScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -50, shortName, {
+      const nameText = this.add.text(0, -68, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
-      const descText = this.add.text(0, 15, joker.description, {
+      const descText = this.add.text(0, 10, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
         align: 'center',
-        wordWrap: { width: 80 }
+        wordWrap: { width: 104 }
       }).setOrigin(0.5);
 
-      const sellValueText = this.add.text(0, 52, `BÁN: $${joker.sellValue}`, {
+      const sellValueText = this.add.text(0, 70, `BÁN: $${joker.sellValue}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         fontStyle: 'bold',
@@ -210,10 +210,10 @@ export class ShopScene extends Phaser.Scene {
 
         const edBorder = this.add.graphics();
         edBorder.lineStyle(2, edColor, 0.85);
-        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
         editionElements.push(edBorder);
 
-        const edTxt = this.add.text(0, -35, edLabel, {
+        const edTxt = this.add.text(0, -48, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
           fontSize: '14px',
           fontStyle: 'bold',
@@ -236,7 +236,7 @@ export class ShopScene extends Phaser.Scene {
                 if (colorObj) {
                   edBorder.clear();
                   edBorder.lineStyle(2.5, colorObj.color, 1);
-                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                  edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
                 }
               }
             }
@@ -253,7 +253,7 @@ export class ShopScene extends Phaser.Scene {
       }
 
       container.add([cardBg, border, nameText, descText, sellValueText, ...editionElements]);
-      container.setSize(90, 135);
+      container.setSize(116, 174);
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
@@ -340,9 +340,9 @@ export class ShopScene extends Phaser.Scene {
       this.shopVoucher.cardContainer = undefined;
     }
 
-    const startX = 50;
-    const startY = 380;
-    const spacing = 95;
+    const startX = 40;
+    const startY = 350;
+    const spacing = 125;
 
     // 1. Render Shop Jokers
     this.shopJokers.forEach((item, index) => {
@@ -350,8 +350,8 @@ export class ShopScene extends Phaser.Scene {
 
       const joker = createJokerById(item.id)!;
       joker.edition = item.edition || 'standard';
-      const x = startX + index * spacing + 45;
-      const y = startY + 67;
+      const x = startX + index * spacing + 58;
+      const y = startY + 87;
 
       const container = this.add.container(x, y);
 
@@ -366,7 +366,7 @@ export class ShopScene extends Phaser.Scene {
       };
       const color = rarityColors[joker.rarity] || 0xffffff;
       border.lineStyle(2, color, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
 
       if (joker.rarity === 'legendary') {
         this.tweens.add({
@@ -381,22 +381,22 @@ export class ShopScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -50, shortName, {
+      const nameText = this.add.text(0, -68, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
-      const descText = this.add.text(0, 15, joker.description, {
+      const descText = this.add.text(0, 10, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
         align: 'center',
-        wordWrap: { width: 80 }
+        wordWrap: { width: 104 }
       }).setOrigin(0.5);
 
-      const priceText = this.add.text(0, 52, `MUA: $${item.price}`, {
+      const priceText = this.add.text(0, 70, `MUA: $${item.price}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '15px',
         fontStyle: 'bold',
@@ -423,10 +423,10 @@ export class ShopScene extends Phaser.Scene {
 
         const edBorder = this.add.graphics();
         edBorder.lineStyle(2, edColor, 0.85);
-        edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+        edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
         editionElements.push(edBorder);
 
-        const edTxt = this.add.text(0, -35, edLabel, {
+        const edTxt = this.add.text(0, -48, edLabel, {
           fontFamily: 'Outfit, Roboto, sans-serif',
           fontSize: '14px',
           fontStyle: 'bold',
@@ -449,7 +449,7 @@ export class ShopScene extends Phaser.Scene {
                 if (colorObj) {
                   edBorder.clear();
                   edBorder.lineStyle(2.5, colorObj.color, 1);
-                  edBorder.strokeRoundedRect(-47, -69, 94, 139, 14);
+                  edBorder.strokeRoundedRect(-60, -90, 120, 178, 14);
                 }
               }
             }
@@ -466,7 +466,7 @@ export class ShopScene extends Phaser.Scene {
       }
 
       container.add([cardBg, border, nameText, descText, priceText, ...editionElements]);
-      container.setSize(90, 135);
+      container.setSize(116, 174);
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
@@ -474,13 +474,13 @@ export class ShopScene extends Phaser.Scene {
         container.setScale(1.08);
         border.clear();
         border.lineStyle(3, 0xffffff, 1);
-        border.strokeRoundedRect(-45, -67, 90, 135, 12);
+        border.strokeRoundedRect(-58, -87, 116, 174, 12);
       });
       container.on('pointerout', () => {
         container.setScale(1.0);
         border.clear();
         border.lineStyle(2, color, 1);
-        border.strokeRoundedRect(-45, -67, 90, 135, 12);
+        border.strokeRoundedRect(-58, -87, 116, 174, 12);
       });
 
       container.on('pointerdown', () => {
@@ -504,9 +504,9 @@ export class ShopScene extends Phaser.Scene {
     this.candyUpgradeContainers.forEach(c => c.destroy());
     this.candyUpgradeContainers = [];
 
-    const startX = 460;
-    const startY = 380;
-    const spacing = 100;
+    const startX = 540;
+    const startY = 350;
+    const spacing = 94;
 
     const colors: { key: CandyColor; label: string; hex: string }[] = [
       { key: 'red', label: 'Đỏ', hex: '#ff3366' },
@@ -517,46 +517,46 @@ export class ShopScene extends Phaser.Scene {
     ];
 
     colors.forEach((col, index) => {
-      const x = startX + index * spacing + 45;
-      const y = startY + 67;
+      const x = startX + index * spacing + 42;
+      const y = startY + 63;
 
       const container = this.add.container(x, y);
 
       // Card Background outline
       const cardBg = this.add.graphics();
       cardBg.fillStyle(0x0e0e15, 0.9);
-      cardBg.fillRoundedRect(-45, -67, 90, 135, 12);
+      cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
       cardBg.lineStyle(1.5, 0x333344, 1);
-      cardBg.strokeRoundedRect(-45, -67, 90, 135, 12);
+      cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
 
       // Candy Image
-      const candyImg = this.add.image(0, -35, `candy_${col.key}`).setScale(0.85);
+      const candyImg = this.add.image(0, -30, `candy_${col.key}`).setScale(0.75);
 
-      const titleText = this.add.text(0, 0, `NÂNG CẤP`, {
+      const titleText = this.add.text(0, 5, `NÂNG CẤP`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
+        fontSize: '12px',
         fontStyle: 'bold',
         color: '#888899'
       }).setOrigin(0.5);
 
       const lvl = this.gameManager.state.candyLevels[col.key];
-      const levelText = this.add.text(0, 15, `Cấp ${lvl}`, {
+      const levelText = this.add.text(0, 20, `Cấp ${lvl}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '18px',
+        fontSize: '16px',
         fontStyle: 'bold',
         color: col.hex
       }).setOrigin(0.5);
 
       const cost = this.gameManager.getCandyUpgradeCost(col.key);
-      const costText = this.add.text(0, 48, `Giá: $${cost}`, {
+      const costText = this.add.text(0, 44, `Giá: $${cost}`, {
         fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '15px',
+        fontSize: '14px',
         fontStyle: 'bold',
         color: '#ffd700'
       }).setOrigin(0.5);
 
       container.add([cardBg, candyImg, titleText, levelText, costText]);
-      container.setSize(90, 135);
+      container.setSize(84, 126);
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
@@ -564,17 +564,17 @@ export class ShopScene extends Phaser.Scene {
         container.setScale(1.08);
         cardBg.clear();
         cardBg.fillStyle(0x0e0e15, 0.95);
-        cardBg.fillRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
         cardBg.lineStyle(2.5, 0xffffff, 1);
-        cardBg.strokeRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
       });
       container.on('pointerout', () => {
         container.setScale(1.0);
         cardBg.clear();
         cardBg.fillStyle(0x0e0e15, 0.9);
-        cardBg.fillRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
         cardBg.lineStyle(1.5, 0x333344, 1);
-        cardBg.strokeRoundedRect(-45, -67, 90, 135, 12);
+        cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
       });
 
       container.on('pointerdown', () => {
@@ -774,12 +774,13 @@ export class ShopScene extends Phaser.Scene {
   private renderShopTarot() {
     if (!this.shopTarot || this.shopTarot.purchased) return;
 
-    const startX = 50;
-    const startY = 380;
+    const startX = 40;
+    const startY = 350;
+    const spacing = 125;
     
     // Consumable slot is at the third slot (index 2)
-    const x = startX + 2 * 95 + 45;
-    const y = startY + 67;
+    const x = startX + 2 * spacing + 58;
+    const y = startY + 87;
 
     const container = this.add.container(x, y);
 
@@ -788,32 +789,32 @@ export class ShopScene extends Phaser.Scene {
     const border = this.add.graphics();
     const borderColor = this.shopTarot.type === 'pack' ? 0xffaa00 : 0xaa33ff;
     border.lineStyle(2, borderColor, 1);
-    border.strokeRoundedRect(-45, -67, 90, 135, 12);
+    border.strokeRoundedRect(-58, -87, 116, 174, 12);
 
     const tagColor = this.shopTarot.type === 'pack' ? '#ffaa00' : '#aa33ff';
-    const tarotTag = this.add.text(0, -50, this.shopTarot.type === 'pack' ? 'BOOSTER' : 'TAROT', {
+    const tarotTag = this.add.text(0, -68, this.shopTarot.type === 'pack' ? 'BOOSTER' : 'TAROT', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
       color: tagColor
     }).setOrigin(0.5);
 
-    const nameText = this.add.text(0, -32, this.shopTarot.name, {
+    const nameText = this.add.text(0, -48, this.shopTarot.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '16px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
 
-    const descText = this.add.text(0, 15, this.shopTarot.description, {
+    const descText = this.add.text(0, 10, this.shopTarot.description, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '14px',
       color: this.shopTarot.type === 'pack' ? '#ffeedd' : '#bfa3ff',
       align: 'center',
-      wordWrap: { width: 80 }
+      wordWrap: { width: 104 }
     }).setOrigin(0.5);
 
-    const priceText = this.add.text(0, 52, `MUA: $${this.shopTarot.price}`, {
+    const priceText = this.add.text(0, 70, `MUA: $${this.shopTarot.price}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '15px',
       fontStyle: 'bold',
@@ -821,7 +822,7 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     container.add([cardBg, border, tarotTag, nameText, descText, priceText]);
-    container.setSize(90, 135);
+    container.setSize(116, 174);
     container.setInteractive({ useHandCursor: true });
 
     container.on('pointerover', () => {
@@ -829,13 +830,13 @@ export class ShopScene extends Phaser.Scene {
       container.setScale(1.08);
       border.clear();
       border.lineStyle(2, 0xffffff, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
     container.on('pointerout', () => {
       container.setScale(1.0);
       border.clear();
       border.lineStyle(2, borderColor, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
 
     container.on('pointerdown', () => {
@@ -945,26 +946,27 @@ export class ShopScene extends Phaser.Scene {
 
       // Card Base BG
       const bgImg = this.add.image(0, 0, card.isTarot ? 'tarot_card_base' : 'joker_card_base');
+      bgImg.setDisplaySize(150, 220);
       
       const border = this.add.graphics();
       border.lineStyle(2.5, card.color, 1);
-      border.strokeRoundedRect(-70, -100, 140, 200, 15);
+      border.strokeRoundedRect(-75, -110, 150, 220, 15);
 
       const tagText = card.isTarot ? 'TAROT' : 'PLANET';
-      const typeText = this.add.text(0, -80, tagText, {
+      const typeText = this.add.text(0, -90, tagText, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '15px',
         fontStyle: 'bold',
         color: '#' + card.color.toString(16).padStart(6, '0')
       }).setOrigin(0.5);
 
-      const nameText = this.add.text(0, -50, card.name, {
+      const nameText = this.add.text(0, -60, card.name, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '18px',
         fontStyle: 'bold',
         color: '#ffffff',
         align: 'center',
-        wordWrap: { width: 120 }
+        wordWrap: { width: 130 }
       }).setOrigin(0.5);
 
       const descText = this.add.text(0, 15, card.description, {
@@ -972,10 +974,10 @@ export class ShopScene extends Phaser.Scene {
         fontSize: '15px',
         color: '#ddddff',
         align: 'center',
-        wordWrap: { width: 120 }
+        wordWrap: { width: 130 }
       }).setOrigin(0.5);
 
-      const useText = this.add.text(0, 75, 'CHỌN LÁ BÀI', {
+      const useText = this.add.text(0, 85, 'CHỌN LÁ BÀI', {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
@@ -983,7 +985,7 @@ export class ShopScene extends Phaser.Scene {
       }).setOrigin(0.5);
 
       cardContainer.add([bgImg, border, typeText, nameText, descText, useText]);
-      cardContainer.setSize(140, 200);
+      cardContainer.setSize(150, 220);
       cardContainer.setInteractive({ useHandCursor: true });
 
       // Hover animations
@@ -992,14 +994,14 @@ export class ShopScene extends Phaser.Scene {
         cardContainer.setScale(1.08);
         border.clear();
         border.lineStyle(3.5, 0xffffff, 1);
-        border.strokeRoundedRect(-70, -100, 140, 200, 15);
+        border.strokeRoundedRect(-75, -110, 150, 220, 15);
       });
 
       cardContainer.on('pointerout', () => {
         cardContainer.setScale(1.0);
         border.clear();
         border.lineStyle(2.5, card.color, 1);
-        border.strokeRoundedRect(-70, -100, 140, 200, 15);
+        border.strokeRoundedRect(-75, -110, 150, 220, 15);
       });
 
       // Apply effect on select
@@ -1102,12 +1104,13 @@ export class ShopScene extends Phaser.Scene {
   private renderShopVoucher() {
     if (!this.shopVoucher || this.shopVoucher.purchased) return;
 
-    const startX = 50;
-    const startY = 380;
+    const startX = 40;
+    const startY = 350;
+    const spacing = 125;
     
     // Voucher card is at the fourth slot (index 3)
-    const x = startX + 3 * 95 + 45;
-    const y = startY + 67;
+    const x = startX + 3 * spacing + 58;
+    const y = startY + 87;
 
     const container = this.add.container(x, y);
 
@@ -1115,31 +1118,31 @@ export class ShopScene extends Phaser.Scene {
     
     const border = this.add.graphics();
     border.lineStyle(2, 0x00ffcc, 1);
-    border.strokeRoundedRect(-45, -67, 90, 135, 12);
+    border.strokeRoundedRect(-58, -87, 116, 174, 12);
 
-    const voucherTag = this.add.text(0, -50, 'VOUCHER', {
+    const voucherTag = this.add.text(0, -68, 'VOUCHER', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '14px',
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
 
-    const nameText = this.add.text(0, -32, this.shopVoucher.name, {
+    const nameText = this.add.text(0, -48, this.shopVoucher.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '16px',
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
 
-    const descText = this.add.text(0, 15, this.shopVoucher.description, {
+    const descText = this.add.text(0, 10, this.shopVoucher.description, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '14px',
       color: '#88aacc',
       align: 'center',
-      wordWrap: { width: 80 }
+      wordWrap: { width: 104 }
     }).setOrigin(0.5);
 
-    const priceText = this.add.text(0, 52, `MUA: $${this.shopVoucher.price}`, {
+    const priceText = this.add.text(0, 70, `MUA: $${this.shopVoucher.price}`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '15px',
       fontStyle: 'bold',
@@ -1147,7 +1150,7 @@ export class ShopScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     container.add([cardBg, border, voucherTag, nameText, descText, priceText]);
-    container.setSize(90, 135);
+    container.setSize(116, 174);
     container.setInteractive({ useHandCursor: true });
 
     container.on('pointerover', () => {
@@ -1155,13 +1158,13 @@ export class ShopScene extends Phaser.Scene {
       container.setScale(1.08);
       border.clear();
       border.lineStyle(2.5, 0xffffff, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
     container.on('pointerout', () => {
       container.setScale(1.0);
       border.clear();
       border.lineStyle(2, 0x00ffcc, 1);
-      border.strokeRoundedRect(-45, -67, 90, 135, 12);
+      border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
 
     container.on('pointerdown', () => {
