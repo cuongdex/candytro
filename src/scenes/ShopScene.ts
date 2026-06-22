@@ -48,8 +48,7 @@ export class ShopScene extends Phaser.Scene {
   // Active inventory cards (for selling)
   private activeJokerCards: Phaser.GameObjects.Container[] = [];
 
-  // Candy upgrades UI
-  private candyUpgradeContainers: Phaser.GameObjects.Container[] = [];
+
 
   constructor() {
     super('ShopScene');
@@ -340,9 +339,9 @@ export class ShopScene extends Phaser.Scene {
       this.shopVoucher.cardContainer = undefined;
     }
 
-    const startX = 40;
+    const startX = 214;
     const startY = 350;
-    const spacing = 125;
+    const spacing = 160;
 
     // 1. Render Shop Jokers
     this.shopJokers.forEach((item, index) => {
@@ -495,95 +494,9 @@ export class ShopScene extends Phaser.Scene {
 
     // 3. Render Shop Voucher
     this.renderShopVoucher();
-
-    // 4. Render Candy Upgrades (on the right)
-    this.renderCandyUpgrades();
   }
 
-  private renderCandyUpgrades() {
-    this.candyUpgradeContainers.forEach(c => c.destroy());
-    this.candyUpgradeContainers = [];
 
-    const startX = 540;
-    const startY = 350;
-    const spacing = 94;
-
-    const colors: { key: CandyColor; label: string; hex: string }[] = [
-      { key: 'red', label: 'Đỏ', hex: '#ff3366' },
-      { key: 'blue', label: 'Xanh dương', hex: '#3399ff' },
-      { key: 'green', label: 'Xanh lá', hex: '#33cc66' },
-      { key: 'yellow', label: 'Vàng', hex: '#ffcc00' },
-      { key: 'purple', label: 'Tím', hex: '#aa33ff' }
-    ];
-
-    colors.forEach((col, index) => {
-      const x = startX + index * spacing + 42;
-      const y = startY + 63;
-
-      const container = this.add.container(x, y);
-
-      // Card Background outline
-      const cardBg = this.add.graphics();
-      cardBg.fillStyle(0x0e0e15, 0.9);
-      cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
-      cardBg.lineStyle(1.5, 0x333344, 1);
-      cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
-
-      // Candy Image
-      const candyImg = this.add.image(0, -30, `candy_${col.key}`).setScale(0.75);
-
-      const titleText = this.add.text(0, 5, `NÂNG CẤP`, {
-        fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '12px',
-        fontStyle: 'bold',
-        color: '#888899'
-      }).setOrigin(0.5);
-
-      const lvl = this.gameManager.state.candyLevels[col.key];
-      const levelText = this.add.text(0, 20, `Cấp ${lvl}`, {
-        fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '16px',
-        fontStyle: 'bold',
-        color: col.hex
-      }).setOrigin(0.5);
-
-      const cost = this.gameManager.getCandyUpgradeCost(col.key);
-      const costText = this.add.text(0, 44, `Giá: $${cost}`, {
-        fontFamily: 'Outfit, Roboto, sans-serif',
-        fontSize: '14px',
-        fontStyle: 'bold',
-        color: '#ffd700'
-      }).setOrigin(0.5);
-
-      container.add([cardBg, candyImg, titleText, levelText, costText]);
-      container.setSize(84, 126);
-      container.setInteractive({ useHandCursor: true });
-
-      container.on('pointerover', () => {
-        AudioManager.getInstance().playClick();
-        container.setScale(1.08);
-        cardBg.clear();
-        cardBg.fillStyle(0x0e0e15, 0.95);
-        cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
-        cardBg.lineStyle(2.5, 0xffffff, 1);
-        cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
-      });
-      container.on('pointerout', () => {
-        container.setScale(1.0);
-        cardBg.clear();
-        cardBg.fillStyle(0x0e0e15, 0.9);
-        cardBg.fillRoundedRect(-42, -63, 84, 126, 12);
-        cardBg.lineStyle(1.5, 0x333344, 1);
-        cardBg.strokeRoundedRect(-42, -63, 84, 126, 12);
-      });
-
-      container.on('pointerdown', () => {
-        this.buyCandyUpgrade(col.key, col.label);
-      });
-
-      this.candyUpgradeContainers.push(container);
-    });
-  }
 
   private buyJoker(item: ShopJokerSlot, _index: number) {
     if (this.gameManager.state.gold < item.price) {
@@ -610,22 +523,7 @@ export class ShopScene extends Phaser.Scene {
     }
   }
 
-  private buyCandyUpgrade(color: CandyColor, label: string) {
-    const cost = this.gameManager.getCandyUpgradeCost(color);
-    if (this.gameManager.state.gold < cost) {
-      this.showMessage('Bạn không có đủ vàng để mua nâng cấp kẹo!');
-      AudioManager.getInstance().playClick();
-      return;
-    }
 
-    const success = this.gameManager.upgradeCandy(color);
-    if (success) {
-      this.updateGoldUI();
-      this.renderCandyUpgrades(); // Redraw levels
-      this.showMessage(`Đã nâng cấp Kẹo ${label} lên Cấp ${this.gameManager.state.candyLevels[color]}!`);
-      AudioManager.getInstance().playUpgrade();
-    }
-  }
 
   private createRerollButton() {
     const btnW = 200;
@@ -774,9 +672,9 @@ export class ShopScene extends Phaser.Scene {
   private renderShopTarot() {
     if (!this.shopTarot || this.shopTarot.purchased) return;
 
-    const startX = 40;
+    const startX = 214;
     const startY = 350;
-    const spacing = 125;
+    const spacing = 160;
     
     // Consumable slot is at the third slot (index 2)
     const x = startX + 2 * spacing + 58;
@@ -1012,7 +910,6 @@ export class ShopScene extends Phaser.Scene {
           this.showMessage(`Đã kích hoạt lá bài Tarot: ${card.name}!`);
         } else {
           this.gameManager.state.candyLevels[card.candyColor as CandyColor] += 1;
-          this.renderCandyUpgrades(); // Redraw levels
           this.showMessage(`Đã nâng cấp Kẹo ${card.label} lên Cấp ${this.gameManager.state.candyLevels[card.candyColor as CandyColor]}!`);
         }
         
@@ -1104,9 +1001,9 @@ export class ShopScene extends Phaser.Scene {
   private renderShopVoucher() {
     if (!this.shopVoucher || this.shopVoucher.purchased) return;
 
-    const startX = 40;
+    const startX = 214;
     const startY = 350;
-    const spacing = 125;
+    const spacing = 160;
     
     // Voucher card is at the fourth slot (index 3)
     const x = startX + 3 * spacing + 58;
