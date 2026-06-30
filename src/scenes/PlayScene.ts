@@ -4,6 +4,7 @@ import { GameManager } from '../core/GameManager';
 import { ScoringEngine } from '../core/Scoring';
 import type { CandyColor, MatchGroup, CandyState } from '../types/game';
 import { AudioManager } from '../core/AudioManager';
+import { createJokerIllustration } from '../core/JokerVisuals';
 
 export class PlayScene extends Phaser.Scene {
   private board!: Board;
@@ -70,6 +71,8 @@ export class PlayScene extends Phaser.Scene {
     const bgGraphics = this.add.graphics();
     bgGraphics.fillGradientStyle(0x080811, 0x080811, 0x14051a, 0x14051a, 1);
     bgGraphics.fillRect(0, 0, width, height);
+
+    this.createStarfield();
     
     // Draw decorative grid lines
     bgGraphics.lineStyle(1, 0x221133, 0.15);
@@ -440,6 +443,8 @@ export class PlayScene extends Phaser.Scene {
       const y = startY + 87;
 
       const container = this.add.container(x, y);
+      container.setData('baseX', x);
+      container.setData('baseY', y);
 
       // Card Background Image
       const cardBg = this.add.image(0, 0, 'joker_card_base');
@@ -477,15 +482,18 @@ export class PlayScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -68, shortName, {
+      const nameText = this.add.text(0, -62, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
+      // Create and add illustration
+      const illustration = createJokerIllustration(this, joker.id);
+
       // Shorten description or fit it in the card
-      const descText = this.add.text(0, 10, joker.description, {
+      const descText = this.add.text(0, 35, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
@@ -584,7 +592,7 @@ export class PlayScene extends Phaser.Scene {
         }).setOrigin(0.5);
       }
 
-      container.add([cardBg, border, nameText, descText, rarityText, ...editionElements]);
+      container.add([cardBg, border, ...illustration, nameText, descText, rarityText, ...editionElements]);
       if (lockOverlay) {
         container.add(lockOverlay);
       }
@@ -596,19 +604,14 @@ export class PlayScene extends Phaser.Scene {
       // Store index on container
       container.setData('index', index);
  
-      container.on('pointerover', () => {
-        AudioManager.getInstance().playClick();
-        container.setScale(1.05);
-      });
-      container.on('pointerout', () => {
-        container.setScale(1.0);
-      });
+      this.setupCardTilt(container);
  
       // Drag event handlers
       container.on('dragstart', () => {
+        container.setData('isDragging', true);
+        container.setData('targetScale', 1.15);
         AudioManager.getInstance().playClick();
         this.children.bringToTop(container);
-        container.setScale(1.1);
         border.clear();
         border.lineStyle(3, 0x00ffcc, 1);
         border.strokeRoundedRect(-58, -87, 116, 174, 12);
@@ -621,7 +624,10 @@ export class PlayScene extends Phaser.Scene {
       });
  
       container.on('dragend', () => {
-        container.setScale(1.0);
+        container.setData('isDragging', false);
+        container.setData('targetScale', 1.0);
+        container.setData('targetSkewX', 0);
+        container.setData('targetSkewY', 0);
         
         // Find which slot is closest
         const relativeX = container.x - startX - 58;
@@ -1084,6 +1090,22 @@ export class PlayScene extends Phaser.Scene {
       this.animateGoldGain(result.goldAdded);
     }
 
+    // Calculate average position of cleared candies for floating score
+    let avgX = 0;
+    let avgY = 0;
+    let validCount = 0;
+    clearedList.forEach(cell => {
+      const sprite = this.candySprites[cell.row][cell.col];
+      if (sprite) {
+        avgX += sprite.x;
+        avgY += sprite.y;
+        validCount++;
+      }
+    });
+    if (validCount > 0) {
+      this.spawnFloatingCascadeScore(avgX / validCount, avgY / validCount, result.chips, result.mult);
+    }
+
     // Update Balatro Scoring HUD boxes
     this.animateScoreAccumulation(result.chips, result.mult, nextChips, nextMult);
 
@@ -1375,188 +1397,252 @@ export class PlayScene extends Phaser.Scene {
       if (sprite) {
         particlesCount++;
         
-        // Emitter/Explosion particles using simple graphics
-        const emitter = this.add.graphics();
-        emitter.fillStyle(this.getCandyHexColor(cell.state.color), 0.8);
-        
-        // Spawn 16 mini particles flying in random directions with gravity arcs
-        const particlesList: { x: number; y: number; dx: number; dy: number; size: number }[] = [];
-        for (let i = 0; i < 16; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = 1 + Math.random() * 5;
-          particlesList.push({
-            x: sprite.x,
-            y: sprite.y,
-            dx: Math.cos(angle) * speed,
-            dy: Math.sin(angle) * speed - 1.5, // Initial pop upwards
-            size: 4 + Math.random() * 5
-          });
-        }
+        const colorHex = this.getCandyHexColor(cell.state.color);
 
-        // Tween the particles
-        this.tweens.addCounter({
-          from: 0,
-          to: 100,
-          duration: 350,
-          onUpdate: (tween) => {
-            const val = (tween.getValue() as number) ?? 0;
-            emitter.clear();
-            const pct = val / 100;
-            particlesList.forEach(p => {
-              p.x += p.dx;
-              p.y += p.dy;
-              p.dy += 0.25; // gravity acceleration
-              const currentSize = Phaser.Math.Clamp(p.size * (1 - pct), 0, 10);
-              const alpha = 1 - pct;
-              emitter.fillStyle(this.getCandyHexColor(cell.state.color), alpha * 0.9);
-              emitter.fillCircle(p.x, p.y, currentSize);
-            });
-          },
-          onComplete: () => {
-            emitter.destroy();
-          }
+        // 1. Phaser Particle Emitter for Candy Shatter
+        const emitter = this.add.particles(sprite.x, sprite.y, `candy_${cell.state.color}`, {
+          speed: { min: 60, max: 200 },
+          angle: { min: 0, max: 360 },
+          scale: { start: 0.3, end: 0 },
+          blendMode: 'ADD',
+          lifespan: 650,
+          gravityY: 500,
+          quantity: 12,
+          emitting: false
         });
+        emitter.explode();
+        this.time.delayedCall(700, () => emitter.destroy());
 
-          // Custom special effects for matching candies
-          if (cell.state.special === 'striped_h') {
-            const laser = this.add.graphics();
-            laser.lineStyle(6, 0xffffff, 1);
-            laser.strokeLineShape(new Phaser.Geom.Line(
-              this.boardX, sprite.y,
-              this.boardX + 8 * this.cellSize, sprite.y
-            ));
-            laser.lineStyle(2, this.getCandyHexColor(cell.state.color), 0.8);
-            laser.strokeLineShape(new Phaser.Geom.Line(
-              this.boardX, sprite.y,
-              this.boardX + 8 * this.cellSize, sprite.y
-            ));
-            this.tweens.add({
-              targets: laser,
-              alpha: 0,
-              scaleY: 0.1,
-              duration: 350,
-              onComplete: () => laser.destroy()
-            });
-          } else if (cell.state.special === 'striped_v') {
-            const laser = this.add.graphics();
-            laser.lineStyle(6, 0xffffff, 1);
-            laser.strokeLineShape(new Phaser.Geom.Line(
-              sprite.x, this.boardY,
-              sprite.x, this.boardY + 8 * this.cellSize
-            ));
-            laser.lineStyle(2, this.getCandyHexColor(cell.state.color), 0.8);
-            laser.strokeLineShape(new Phaser.Geom.Line(
-              sprite.x, this.boardY,
-              sprite.x, this.boardY + 8 * this.cellSize
-            ));
-            this.tweens.add({
-              targets: laser,
-              alpha: 0,
-              scaleX: 0.1,
-              duration: 350,
-              onComplete: () => laser.destroy()
-            });
-          } else if (cell.state.special === 'wrapped') {
-            const wave = this.add.graphics();
-            const color = this.getCandyHexColor(cell.state.color);
+        // 2. Sparkle Emitter for extra shine
+        const sparkleEmitter = this.add.particles(sprite.x, sprite.y, `candy_${cell.state.color}`, {
+          speed: { min: 30, max: 100 },
+          scale: { start: 0.15, end: 0 },
+          alpha: { start: 1, end: 0 },
+          lifespan: 500,
+          quantity: 8,
+          emitting: false
+        });
+        sparkleEmitter.explode();
+        this.time.delayedCall(600, () => sparkleEmitter.destroy());
+
+        // Custom special effects for matching candies
+        if (cell.state.special === 'striped_h') {
+          const laser = this.add.graphics();
+          
+          // Outer neon glow
+          laser.fillStyle(colorHex, 0.45);
+          laser.fillRect(this.boardX, sprite.y - 16, 8 * this.cellSize, 32);
+          
+          // Inner core
+          laser.fillStyle(0xffffff, 1);
+          laser.fillRect(this.boardX, sprite.y - 6, 8 * this.cellSize, 12);
+          
+          this.tweens.add({
+            targets: laser,
+            alpha: 0,
+            scaleY: 0.05,
+            duration: 350,
+            ease: 'Cubic.easeOut',
+            onComplete: () => laser.destroy()
+          });
+
+          // Horizontal laser particles
+          const laserParticles = this.add.particles(sprite.x, sprite.y, `candy_${cell.state.color}`, {
+            speedX: { min: -400, max: 400 },
+            speedY: { min: -15, max: 15 },
+            scale: { start: 0.35, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 400,
+            quantity: 24,
+            emitting: false
+          });
+          laserParticles.explode();
+          this.time.delayedCall(500, () => laserParticles.destroy());
+          
+        } else if (cell.state.special === 'striped_v') {
+          const laser = this.add.graphics();
+          
+          // Outer neon glow
+          laser.fillStyle(colorHex, 0.45);
+          laser.fillRect(sprite.x - 16, this.boardY, 32, 8 * this.cellSize);
+          
+          // Inner core
+          laser.fillStyle(0xffffff, 1);
+          laser.fillRect(sprite.x - 6, this.boardY, 12, 8 * this.cellSize);
+          
+          this.tweens.add({
+            targets: laser,
+            alpha: 0,
+            scaleX: 0.05,
+            duration: 350,
+            ease: 'Cubic.easeOut',
+            onComplete: () => laser.destroy()
+          });
+
+          // Vertical laser particles
+          const laserParticles = this.add.particles(sprite.x, sprite.y, `candy_${cell.state.color}`, {
+            speedX: { min: -15, max: 15 },
+            speedY: { min: -400, max: 400 },
+            scale: { start: 0.35, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 400,
+            quantity: 24,
+            emitting: false
+          });
+          laserParticles.explode();
+          this.time.delayedCall(500, () => laserParticles.destroy());
+
+        } else if (cell.state.special === 'wrapped') {
+          // Wrapped expanding shockwave
+          const wave = this.add.graphics();
+          this.tweens.addCounter({
+            from: 10,
+            to: 130,
+            duration: 400,
+            onUpdate: (tween) => {
+              const radius = tween.getValue() as number;
+              const alpha = 1 - (radius - 10) / 120;
+              wave.clear();
+              
+              // Draw double rings
+              wave.lineStyle(4, colorHex, alpha);
+              wave.strokeCircle(sprite.x, sprite.y, radius);
+              wave.lineStyle(1.5, 0xffffff, alpha * 0.7);
+              wave.strokeCircle(sprite.x, sprite.y, radius - 6);
+            },
+            onComplete: () => wave.destroy()
+          });
+
+          // Circular shockwave particles
+          const blastParticles = this.add.particles(sprite.x, sprite.y, `candy_${cell.state.color}`, {
+            speed: { min: 150, max: 280 },
+            scale: { start: 0.4, end: 0 },
+            blendMode: 'ADD',
+            lifespan: 450,
+            quantity: 25,
+            emitting: false
+          });
+          blastParticles.explode();
+          this.time.delayedCall(500, () => blastParticles.destroy());
+
+        } else if (cell.state.special === 'color_bomb') {
+          const bombColor = cell.state.color;
+          const beam = this.add.graphics();
+          const targetCoords: { x: number; y: number }[] = [];
+          cleared.forEach(otherCell => {
+            if (otherCell.state.color === bombColor && (otherCell.row !== cell.row || otherCell.col !== cell.col)) {
+              const otherSprite = this.candySprites[otherCell.row][otherCell.col];
+              if (otherSprite) {
+                targetCoords.push({ x: otherSprite.x, y: otherSprite.y });
+              }
+            }
+          });
+          
+          if (targetCoords.length > 0) {
             this.tweens.addCounter({
-              from: 10,
-              to: 120,
-              duration: 400,
+              from: 0,
+              to: 100,
+              duration: 450,
               onUpdate: (tween) => {
-                const radius = tween.getValue() as number;
-                const alpha = 1 - (radius - 10) / 110;
-                wave.clear();
-                wave.lineStyle(4, color, alpha);
-                wave.strokeCircle(sprite.x, sprite.y, radius);
+                const val = tween.getValue() as number;
+                const alpha = 1 - val / 100;
+                beam.clear();
+                
+                targetCoords.forEach(target => {
+                  const currentX = sprite.x + (target.x - sprite.x) * (val / 100);
+                  const currentY = sprite.y + (target.y - sprite.y) * (val / 100);
+                  
+                  // Draw a glowing electrical bolt
+                  // Main beam
+                  beam.lineStyle(3.5, 0xffffff, alpha);
+                  beam.lineBetween(sprite.x, sprite.y, currentX, currentY);
+                  
+                  // Outer electrical halo
+                  beam.lineStyle(8, colorHex, alpha * 0.45);
+                  beam.lineBetween(sprite.x, sprite.y, currentX, currentY);
+                  
+                  // Spark particles along the line
+                  if (Math.random() < 0.15) {
+                    const spark = this.add.particles(currentX, currentY, `candy_${bombColor}`, {
+                      speed: 50,
+                      scale: { start: 0.15, end: 0 },
+                      blendMode: 'ADD',
+                      lifespan: 300,
+                      quantity: 1,
+                      emitting: false
+                    });
+                    spark.explode();
+                    this.time.delayedCall(300, () => spark.destroy());
+                  }
+                });
               },
               onComplete: () => {
-                wave.destroy();
+                beam.destroy();
               }
             });
-          } else if (cell.state.special === 'color_bomb') {
-            const bombColor = cell.state.color;
-            const beam = this.add.graphics();
-            const targetCoords: { x: number; y: number }[] = [];
-            cleared.forEach(otherCell => {
-              if (otherCell.state.color === bombColor && (otherCell.row !== cell.row || otherCell.col !== cell.col)) {
-                const otherSprite = this.candySprites[otherCell.row][otherCell.col];
-                if (otherSprite) {
-                  targetCoords.push({ x: otherSprite.x, y: otherSprite.y });
-                }
-              }
-            });
-            
-            if (targetCoords.length > 0) {
-              this.tweens.addCounter({
-                from: 0,
-                to: 100,
-                duration: 350,
-                onUpdate: (tween) => {
-                  const val = tween.getValue() as number;
-                  const alpha = 1 - val / 100;
-                  beam.clear();
-                  targetCoords.forEach(target => {
-                    beam.lineStyle(3, 0xffffff, alpha);
-                    const currentX = sprite.x + (target.x - sprite.x) * (val / 100);
-                    const currentY = sprite.y + (target.y - sprite.y) * (val / 100);
-                    beam.lineBetween(sprite.x, sprite.y, currentX, currentY);
-                    
-                    beam.lineStyle(1, 0xaa33ff, alpha * 0.7);
-                    beam.lineBetween(sprite.x, sprite.y, target.x, target.y);
-                  });
-                },
-                onComplete: () => {
-                  beam.destroy();
-                }
-              });
+          }
+        }
+
+        // Scale and fade candy out
+        this.tweens.add({
+          targets: sprite,
+          scale: 0.1,
+          alpha: 0,
+          angle: 180,
+          duration: 220,
+          onComplete: () => {
+            particlesCount--;
+            if (particlesCount === 0) {
+              onComplete();
             }
           }
-
-          // Scale and fade candy out
-          this.tweens.add({
-            targets: sprite,
-            scale: 0.1,
-            alpha: 0,
-            angle: 180,
-            duration: 200,
-            onComplete: () => {
-              particlesCount--;
-              if (particlesCount === 0) {
-                onComplete();
-              }
-            }
-          });
-        }
-      });
+        });
+      }
+    });
 
     if (particlesCount === 0) {
       onComplete();
     }
   }
 
-  // Accumulate chips and mult values beautifully
+  // Accumulate chips and mult values beautifully (with smooth roll-up and punch pop)
   private animateScoreAccumulation(_chipsAdd: number, _multAdd: number, nextChips: number, nextMult: number) {
     // Punch scale effect on boxes
     this.tweens.add({
       targets: this.chipsBox,
-      scale: 1.25,
-      duration: 100,
+      scale: 1.3,
+      duration: 120,
       yoyo: true,
-      ease: 'Quad.easeOut'
+      ease: 'Back.easeOut'
     });
 
     this.tweens.add({
       targets: this.multBox,
-      scale: 1.25,
-      duration: 100,
+      scale: 1.3,
+      duration: 120,
       yoyo: true,
-      ease: 'Quad.easeOut'
+      ease: 'Back.easeOut'
     });
 
-    this.chipsText.setText(this.formatNumber(nextChips));
-    this.multText.setText(this.formatNumber(nextMult));
-    this.scoringPanelText.setText(this.formatNumber(nextChips * nextMult));
+    // Roll up numbers smoothly
+    const currentChips = parseInt(this.chipsText.text.replace(/,/g, '')) || 0;
+    const currentMult = parseInt(this.multText.text.replace(/,/g, '')) || 0;
+
+    this.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 450,
+      ease: 'Quad.easeOut',
+      onUpdate: (tween) => {
+        const progress = (tween.getValue() as number) / 100;
+        const tempChips = Math.round(currentChips + (nextChips - currentChips) * progress);
+        const tempMult = Math.round(currentMult + (nextMult - currentMult) * progress);
+        
+        this.chipsText.setText(this.formatNumber(tempChips));
+        this.multText.setText(this.formatNumber(tempMult));
+        this.scoringPanelText.setText(this.formatNumber(tempChips * tempMult));
+      }
+    });
   }
 
   // Floating text on Jokers when triggered
@@ -1742,15 +1828,28 @@ export class PlayScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const modal = this.add.container(0, 0);
 
-    // blocker background
+    // 1. Translucent blocker background
     const bg = this.add.graphics();
-    bg.fillStyle(0x020205, 0.95);
+    bg.fillStyle(0x020205, 0.8);
     bg.fillRect(0, 0, width, height);
     modal.add(bg);
 
     const zone = this.add.zone(width / 2, height / 2, width, height);
     zone.setInteractive();
     modal.add(zone);
+
+    // Content container for entrance animation
+    const contentContainer = this.add.container(0, 0);
+    modal.add(contentContainer);
+
+    // Initial scale for animation
+    contentContainer.setScale(0);
+    this.tweens.add({
+      targets: contentContainer,
+      scale: 1,
+      duration: 300,
+      ease: 'Back.easeOut'
+    });
 
     // Title
     const blindName = round === 1 ? 'SMALL BLIND' : 'BIG BLIND';
@@ -1764,7 +1863,7 @@ export class PlayScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#ffd700'
     }).setOrigin(0.5);
-    modal.add(titleText);
+    contentContainer.add(titleText);
 
     // Draw Skip Tag Info Box
     const tagBg = this.add.graphics();
@@ -1772,7 +1871,7 @@ export class PlayScene extends Phaser.Scene {
     tagBg.fillRoundedRect(width / 2 - 200, height / 2 - 80, 400, 100, 12);
     tagBg.lineStyle(2, 0xffaa00, 0.7);
     tagBg.strokeRoundedRect(width / 2 - 200, height / 2 - 80, 400, 100, 12);
-    modal.add(tagBg);
+    contentContainer.add(tagBg);
 
     const tagTitle = this.add.text(width / 2, height / 2 - 60, `PHẦN THƯỞNG BỎ QUA (SKIP REWARD):`, {
       fontFamily: 'Outfit, Roboto, sans-serif',
@@ -1780,7 +1879,7 @@ export class PlayScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#ffaa00'
     }).setOrigin(0.5);
-    modal.add(tagTitle);
+    contentContainer.add(tagTitle);
 
     const tagName = this.add.text(width / 2, height / 2 - 42, tagInfo.name, {
       fontFamily: 'Outfit, Roboto, sans-serif',
@@ -1788,14 +1887,14 @@ export class PlayScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#ffffff'
     }).setOrigin(0.5);
-    modal.add(tagName);
+    contentContainer.add(tagName);
 
     const tagDesc = this.add.text(width / 2, height / 2 - 20, tagInfo.desc, {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '17px',
       color: '#888899'
     }).setOrigin(0.5);
-    modal.add(tagDesc);
+    contentContainer.add(tagDesc);
 
     // Buttons
     // 1. Play Button
@@ -1806,7 +1905,7 @@ export class PlayScene extends Phaser.Scene {
     playBg.fillRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
     playBg.lineStyle(2, 0x00ffcc, 0.8);
     playBg.strokeRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
-    modal.add(playBg);
+    contentContainer.add(playBg);
 
     const playText = this.add.text(playBtnX, btnY, 'ĐẤU BLIND', {
       fontFamily: 'Outfit, Roboto, sans-serif',
@@ -1814,17 +1913,39 @@ export class PlayScene extends Phaser.Scene {
       fontStyle: 'bold',
       color: '#00ffcc'
     }).setOrigin(0.5);
-    modal.add(playText);
+    contentContainer.add(playText);
 
+    // 2. Skip Button
+    const skipBtnX = width / 2 + 120;
+    const skipBg = this.add.graphics();
+    skipBg.fillStyle(0xff0055, 0.15);
+    skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    skipBg.lineStyle(2, 0xff0055, 0.8);
+    skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
+    contentContainer.add(skipBg);
+
+    const skipText = this.add.text(skipBtnX, btnY, 'BỎ QUA (SKIP)', {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#ff0055'
+    }).setOrigin(0.5);
+    contentContainer.add(skipText);
+
+    // Button zones
     const playZone = this.add.zone(playBtnX, btnY, 160, 50).setInteractive({ useHandCursor: true });
-    modal.add(playZone);
+    contentContainer.add(playZone);
+    
+    const skipZone = this.add.zone(skipBtnX, btnY, 160, 50).setInteractive({ useHandCursor: true });
+    contentContainer.add(skipZone);
 
+    // Hover listeners
     playZone.on('pointerover', () => {
       AudioManager.getInstance().playClick();
       playBg.clear();
-      playBg.fillStyle(0x00ffcc, 0.35);
+      playBg.fillStyle(0x00ffcc, 0.3);
       playBg.fillRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
-      playBg.lineStyle(2, 0x00ffcc, 1);
+      playBg.lineStyle(2.5, 0x00ffcc, 1);
       playBg.strokeRoundedRect(playBtnX - 80, btnY - 25, 160, 50, 8);
     });
 
@@ -1837,36 +1958,27 @@ export class PlayScene extends Phaser.Scene {
     });
 
     playZone.on('pointerdown', () => {
-      AudioManager.getInstance().playClick();
-      modal.destroy();
+      AudioManager.getInstance().playUpgrade();
+      
+      // Slide out/fade out modal
+      this.tweens.add({
+        targets: contentContainer,
+        scale: 0.75,
+        alpha: 0,
+        duration: 250,
+        ease: 'Back.easeIn',
+        onComplete: () => {
+          modal.destroy();
+        }
+      });
     });
-
-    // 2. Skip Button
-    const skipBtnX = width / 2 + 120;
-    const skipBg = this.add.graphics();
-    skipBg.fillStyle(0xff0055, 0.15);
-    skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
-    skipBg.lineStyle(2, 0xff0055, 0.8);
-    skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
-    modal.add(skipBg);
-
-    const skipText = this.add.text(skipBtnX, btnY, 'BỎ QUA (SKIP)', {
-      fontFamily: 'Outfit, Roboto, sans-serif',
-      fontSize: '22px',
-      fontStyle: 'bold',
-      color: '#ff0055'
-    }).setOrigin(0.5);
-    modal.add(skipText);
-
-    const skipZone = this.add.zone(skipBtnX, btnY, 160, 50).setInteractive({ useHandCursor: true });
-    modal.add(skipZone);
 
     skipZone.on('pointerover', () => {
       AudioManager.getInstance().playClick();
       skipBg.clear();
-      skipBg.fillStyle(0xff0055, 0.35);
+      skipBg.fillStyle(0xff0055, 0.3);
       skipBg.fillRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
-      skipBg.lineStyle(2, 0xff0055, 1);
+      skipBg.lineStyle(2.5, 0xff0055, 1);
       skipBg.strokeRoundedRect(skipBtnX - 80, btnY - 25, 160, 50, 8);
     });
 
@@ -1905,5 +2017,130 @@ export class PlayScene extends Phaser.Scene {
 
   private formatNumber(num: number): string {
     return num.toLocaleString();
+  }
+
+  private setupCardTilt(container: Phaser.GameObjects.Container) {
+    container.setData('targetAngle', 0);
+    container.setData('targetScale', 1.0);
+    container.setData('targetOffsetX', 0);
+    container.setData('targetOffsetY', 0);
+
+    const halfW = container.width / 2;
+    const halfH = container.height / 2;
+
+    container.on('pointerover', () => {
+      AudioManager.getInstance().playClick();
+    });
+
+    container.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      if (container.getData('isDragging')) return;
+      
+      const localX = pointer.x - container.x;
+      const localY = pointer.y - container.y;
+      const normX = Phaser.Math.Clamp(localX / halfW, -1, 1);
+      const normY = Phaser.Math.Clamp(localY / halfH, -1, 1);
+      
+      container.setData('targetAngle', normX * 4);
+      container.setData('targetOffsetX', normX * 6);
+      container.setData('targetOffsetY', normY * 6);
+      container.setData('targetScale', 1.08);
+    });
+
+    container.on('pointerout', () => {
+      container.setData('targetAngle', 0);
+      container.setData('targetOffsetX', 0);
+      container.setData('targetOffsetY', 0);
+      container.setData('targetScale', 1.0);
+    });
+  }
+
+  update() {
+    // Smooth 3D tilt Lerp for Joker cards
+    const lerpSpeed = 0.15;
+    this.jokerCards.forEach(card => {
+      if (!card || !card.active) return;
+
+      const baseX = card.getData('baseX') ?? card.x;
+      const baseY = card.getData('baseY') ?? card.y;
+
+      if (card.getData('isDragging')) {
+        card.setData('baseX', card.x);
+        card.setData('baseY', card.y);
+        return;
+      }
+
+      const targetAngle = card.getData('targetAngle') ?? 0;
+      const targetScale = card.getData('targetScale') ?? 1.0;
+      const targetOffsetX = card.getData('targetOffsetX') ?? 0;
+      const targetOffsetY = card.getData('targetOffsetY') ?? 0;
+
+      card.angle = Phaser.Math.Linear(card.angle, targetAngle, lerpSpeed);
+
+      const newScale = Phaser.Math.Linear(card.scaleX, targetScale, lerpSpeed);
+      card.setScale(newScale);
+
+      card.x = Phaser.Math.Linear(card.x, baseX + targetOffsetX, lerpSpeed);
+      card.y = Phaser.Math.Linear(card.y, baseY + targetOffsetY, lerpSpeed);
+    });
+  }
+
+  private spawnFloatingCascadeScore(startX: number, startY: number, chips: number, mult: number) {
+    if (chips === 0 && mult === 0) return;
+    
+    const txt = `+${chips} x ${mult}`;
+    const floatingScore = this.add.text(startX, startY, txt, {
+      fontFamily: 'Outfit, Roboto, sans-serif',
+      fontSize: '22px',
+      fontStyle: 'bold',
+      color: '#ffaa00',
+      stroke: '#000000',
+      strokeThickness: 4,
+      shadow: { blur: 12, color: '#ffaa00', fill: true }
+    }).setOrigin(0.5);
+
+    // Fly along a Bezier curve to the scoring panel
+    const targetX = this.boardX + 155;
+    const targetY = 705;
+    const controlX = (startX + targetX) / 2;
+    const controlY = Math.min(startY, targetY) - 80; // Arc upwards
+
+    this.tweens.addCounter({
+      from: 0,
+      to: 100,
+      duration: 700,
+      ease: 'Quad.easeOut',
+      onUpdate: (tween) => {
+        const t = (tween.getValue() as number) / 100;
+        const u = 1 - t;
+        const x = u * u * startX + 2 * u * t * controlX + t * t * targetX;
+        const y = u * u * startY + 2 * u * t * controlY + t * t * targetY;
+        
+        floatingScore.setPosition(x, y);
+        floatingScore.setScale(1.2 - t * 0.4);
+        floatingScore.setAlpha(1 - t * t * 0.5);
+      },
+      onComplete: () => {
+        floatingScore.destroy();
+      }
+    });
+  }
+
+  private createStarfield() {
+    const { width, height } = this.scale;
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    colors.forEach(col => {
+      this.add.particles(0, 0, `candy_${col}`, {
+        x: { min: 0, max: width },
+        y: { min: 0, max: height },
+        frequency: 800,
+        lifespan: 12000,
+        speedY: { min: 5, max: 15 },
+        speedX: { min: -2, max: 2 },
+        scale: { min: 0.03, max: 0.08 },
+        alpha: { min: 0.1, max: 0.4 },
+        blendMode: 'ADD',
+        advance: 12000
+      });
+    });
   }
 }

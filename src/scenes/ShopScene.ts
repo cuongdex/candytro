@@ -3,6 +3,7 @@ import { createJokerById, getRandomJokerId } from '../core/JokerDb';
 import { GameManager } from '../core/GameManager';
 import type { CandyColor } from '../types/game';
 import { AudioManager } from '../core/AudioManager';
+import { createJokerIllustration, createConsumableIllustration } from '../core/JokerVisuals';
 
 interface ShopJokerSlot {
   id: string;
@@ -47,6 +48,7 @@ export class ShopScene extends Phaser.Scene {
 
   // Active inventory cards (for selling)
   private activeJokerCards: Phaser.GameObjects.Container[] = [];
+  private shopCards: Phaser.GameObjects.Container[] = [];
 
 
 
@@ -56,6 +58,7 @@ export class ShopScene extends Phaser.Scene {
 
   create() {
     this.gameManager = GameManager.getInstance();
+    this.shopCards = [];
     const hasDiscount = this.gameManager.state.boughtVouchers.includes('reroll_discount');
     this.rerollCost = hasDiscount ? 1 : 2;
 
@@ -65,6 +68,8 @@ export class ShopScene extends Phaser.Scene {
     const bgGraphics = this.add.graphics();
     bgGraphics.fillGradientStyle(0x06060c, 0x06060c, 0x14051a, 0x14051a, 1);
     bgGraphics.fillRect(0, 0, width, height);
+
+    this.createStarfield();
 
     // Decorative grid
     bgGraphics.lineStyle(1, 0x332244, 0.1);
@@ -140,6 +145,8 @@ export class ShopScene extends Phaser.Scene {
       const y = startY + 87;
 
       const container = this.add.container(x, y);
+      container.setData('baseX', x);
+      container.setData('baseY', y);
 
       const cardBg = this.add.image(0, 0, 'joker_card_base');
       
@@ -167,14 +174,17 @@ export class ShopScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -68, shortName, {
+      const nameText = this.add.text(0, -62, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
-      const descText = this.add.text(0, 10, joker.description, {
+      // Create custom illustration
+      const illustration = createJokerIllustration(this, joker.id);
+
+      const descText = this.add.text(0, 35, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
@@ -251,17 +261,14 @@ export class ShopScene extends Phaser.Scene {
         }
       }
 
-      container.add([cardBg, border, nameText, descText, sellValueText, ...editionElements]);
+      container.add([cardBg, border, ...illustration, nameText, descText, sellValueText, ...editionElements]);
       container.setSize(116, 174);
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
         AudioManager.getInstance().playClick();
-        container.setScale(1.05);
       });
-      container.on('pointerout', () => {
-        container.setScale(1.0);
-      });
+      this.setupCardTilt(container);
 
       // Click to sell
       container.on('pointerdown', () => {
@@ -353,6 +360,8 @@ export class ShopScene extends Phaser.Scene {
       const y = startY + 87;
 
       const container = this.add.container(x, y);
+      container.setData('baseX', x);
+      container.setData('baseY', y);
 
       const cardBg = this.add.image(0, 0, 'joker_card_base');
       
@@ -380,14 +389,17 @@ export class ShopScene extends Phaser.Scene {
       let shortName = joker.name;
       if (shortName.length > 10) shortName = shortName.substring(0, 9) + '.';
 
-      const nameText = this.add.text(0, -68, shortName, {
+      const nameText = this.add.text(0, -62, shortName, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '16px',
         fontStyle: 'bold',
         color: '#ffffff'
       }).setOrigin(0.5);
 
-      const descText = this.add.text(0, 10, joker.description, {
+      // Create custom illustration
+      const illustration = createJokerIllustration(this, joker.id);
+
+      const descText = this.add.text(0, 35, joker.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '14px',
         color: '#888899',
@@ -464,23 +476,22 @@ export class ShopScene extends Phaser.Scene {
         }
       }
 
-      container.add([cardBg, border, nameText, descText, priceText, ...editionElements]);
+      container.add([cardBg, border, ...illustration, nameText, descText, priceText, ...editionElements]);
       container.setSize(116, 174);
       container.setInteractive({ useHandCursor: true });
 
       container.on('pointerover', () => {
         AudioManager.getInstance().playClick();
-        container.setScale(1.08);
         border.clear();
         border.lineStyle(3, 0xffffff, 1);
         border.strokeRoundedRect(-58, -87, 116, 174, 12);
       });
       container.on('pointerout', () => {
-        container.setScale(1.0);
         border.clear();
         border.lineStyle(2, color, 1);
         border.strokeRoundedRect(-58, -87, 116, 174, 12);
       });
+      this.setupCardTilt(container);
 
       container.on('pointerdown', () => {
         this.buyJoker(item, index);
@@ -681,6 +692,8 @@ export class ShopScene extends Phaser.Scene {
     const y = startY + 87;
 
     const container = this.add.container(x, y);
+    container.setData('baseX', x);
+    container.setData('baseY', y);
 
     const cardBg = this.add.image(0, 0, 'tarot_card_base');
     
@@ -725,17 +738,16 @@ export class ShopScene extends Phaser.Scene {
 
     container.on('pointerover', () => {
       AudioManager.getInstance().playClick();
-      container.setScale(1.08);
       border.clear();
       border.lineStyle(2, 0xffffff, 1);
       border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
     container.on('pointerout', () => {
-      container.setScale(1.0);
       border.clear();
       border.lineStyle(2, borderColor, 1);
       border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
+    this.setupCardTilt(container);
 
     container.on('pointerdown', () => {
       this.buyTarot();
@@ -777,9 +789,9 @@ export class ShopScene extends Phaser.Scene {
     const { width, height } = this.scale;
     const modal = this.add.container(0, 0);
 
-    // 1. Semi-transparent blocker background
+    // 1. Translucent blocker background
     const bg = this.add.graphics();
-    bg.fillStyle(0x020205, 0.95);
+    bg.fillStyle(0x020205, 0.85);
     bg.fillRect(0, 0, width, height);
     modal.add(bg);
 
@@ -787,6 +799,10 @@ export class ShopScene extends Phaser.Scene {
     const zone = this.add.zone(width / 2, height / 2, width, height);
     zone.setInteractive();
     modal.add(zone);
+
+    // Content container for entrance animation
+    const contentContainer = this.add.container(0, 0);
+    modal.add(contentContainer);
 
     // 2. Title
     const packName = packId === 'tarot_pack' ? 'GÓI THÈ BÀI PHÉP (TAROT PACK)' : 'GÓI THÈ HÀNH TINH (CELESTIAL PACK)';
@@ -797,14 +813,14 @@ export class ShopScene extends Phaser.Scene {
       color: '#ffd700',
       shadow: { blur: 10, color: '#ffd700', fill: true }
     }).setOrigin(0.5);
-    modal.add(title);
+    contentContainer.add(title);
 
     const subtitle = this.add.text(width / 2, 160, 'CHỌN 1 TRONG 3 LÁ BÀI DƯỚI ĐÂY', {
       fontFamily: 'Outfit, Roboto, sans-serif',
       fontSize: '18px',
       color: '#888899'
     }).setOrigin(0.5);
-    modal.add(subtitle);
+    contentContainer.add(subtitle);
 
     // 3. Generate 3 random cards based on packId
     const cardOptions: any[] = [];
@@ -841,6 +857,8 @@ export class ShopScene extends Phaser.Scene {
       const y = cardY;
 
       const cardContainer = this.add.container(x, y);
+      cardContainer.setData('baseX', x);
+      cardContainer.setData('baseY', y);
 
       // Card Base BG
       const bgImg = this.add.image(0, 0, card.isTarot ? 'tarot_card_base' : 'joker_card_base');
@@ -867,7 +885,10 @@ export class ShopScene extends Phaser.Scene {
         wordWrap: { width: 130 }
       }).setOrigin(0.5);
 
-      const descText = this.add.text(0, 15, card.description, {
+      // Create consumable illustration
+      const illustration = createConsumableIllustration(this, card.id, !!card.isTarot);
+
+      const descText = this.add.text(0, 35, card.description, {
         fontFamily: 'Outfit, Roboto, sans-serif',
         fontSize: '15px',
         color: '#ddddff',
@@ -882,25 +903,24 @@ export class ShopScene extends Phaser.Scene {
         color: '#00ffcc'
       }).setOrigin(0.5);
 
-      cardContainer.add([bgImg, border, typeText, nameText, descText, useText]);
+      cardContainer.add([bgImg, border, ...illustration, typeText, nameText, descText, useText]);
       cardContainer.setSize(150, 220);
       cardContainer.setInteractive({ useHandCursor: true });
 
       // Hover animations
       cardContainer.on('pointerover', () => {
         AudioManager.getInstance().playClick();
-        cardContainer.setScale(1.08);
         border.clear();
         border.lineStyle(3.5, 0xffffff, 1);
         border.strokeRoundedRect(-75, -110, 150, 220, 15);
       });
 
       cardContainer.on('pointerout', () => {
-        cardContainer.setScale(1.0);
         border.clear();
         border.lineStyle(2.5, card.color, 1);
         border.strokeRoundedRect(-75, -110, 150, 220, 15);
       });
+      this.setupCardTilt(cardContainer);
 
       // Apply effect on select
       cardContainer.on('pointerdown', () => {
@@ -916,7 +936,18 @@ export class ShopScene extends Phaser.Scene {
         modal.destroy();
       });
 
-      modal.add(cardContainer);
+      contentContainer.add(cardContainer);
+    });
+
+    // Animate content entrance
+    contentContainer.setScale(0.75);
+    contentContainer.setAlpha(0);
+    this.tweens.add({
+      targets: contentContainer,
+      scale: 1.0,
+      alpha: 1,
+      duration: 400,
+      ease: 'Back.easeOut'
     });
   }
 
@@ -1010,6 +1041,8 @@ export class ShopScene extends Phaser.Scene {
     const y = startY + 87;
 
     const container = this.add.container(x, y);
+    container.setData('baseX', x);
+    container.setData('baseY', y);
 
     const cardBg = this.add.image(0, 0, 'voucher_card_base');
     
@@ -1052,17 +1085,16 @@ export class ShopScene extends Phaser.Scene {
 
     container.on('pointerover', () => {
       AudioManager.getInstance().playClick();
-      container.setScale(1.08);
       border.clear();
       border.lineStyle(2.5, 0xffffff, 1);
       border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
     container.on('pointerout', () => {
-      container.setScale(1.0);
       border.clear();
       border.lineStyle(2, 0x00ffcc, 1);
       border.strokeRoundedRect(-58, -87, 116, 174, 12);
     });
+    this.setupCardTilt(container);
 
     container.on('pointerdown', () => {
       this.buyVoucher();
@@ -1117,6 +1149,80 @@ export class ShopScene extends Phaser.Scene {
       if (this.messageText.text === text) {
         this.messageText.setText('Hãy mua các thẻ Joker và nâng cấp kẹo phù hợp.').setColor('#888899');
       }
+    });
+  }
+
+  private setupCardTilt(container: Phaser.GameObjects.Container) {
+    container.setData('targetAngle', 0);
+    container.setData('targetScale', 1.0);
+    container.setData('targetOffsetX', 0);
+    container.setData('targetOffsetY', 0);
+
+    const halfW = container.width / 2;
+    const halfH = container.height / 2;
+
+    container.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+      const localX = pointer.x - container.x;
+      const localY = pointer.y - container.y;
+      const normX = Phaser.Math.Clamp(localX / halfW, -1, 1);
+      const normY = Phaser.Math.Clamp(localY / halfH, -1, 1);
+      
+      container.setData('targetAngle', normX * 4);
+      container.setData('targetOffsetX', normX * 6);
+      container.setData('targetOffsetY', normY * 6);
+      container.setData('targetScale', 1.08);
+    });
+
+    container.on('pointerout', () => {
+      container.setData('targetAngle', 0);
+      container.setData('targetOffsetX', 0);
+      container.setData('targetOffsetY', 0);
+      container.setData('targetScale', 1.0);
+    });
+
+    this.shopCards.push(container);
+  }
+
+  private createStarfield() {
+    const { width, height } = this.scale;
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    colors.forEach(col => {
+      this.add.particles(0, 0, `candy_${col}`, {
+        x: { min: 0, max: width },
+        y: { min: 0, max: height },
+        frequency: 800,
+        lifespan: 12000,
+        speedY: { min: 5, max: 15 },
+        speedX: { min: -2, max: 2 },
+        scale: { min: 0.03, max: 0.08 },
+        alpha: { min: 0.1, max: 0.4 },
+        blendMode: 'ADD',
+        advance: 12000
+      });
+    });
+  }
+
+  update() {
+    // Smooth 3D tilt Lerp for Shop cards
+    const lerpSpeed = 0.15;
+    this.shopCards = this.shopCards.filter(card => card && card.active);
+
+    this.shopCards.forEach(card => {
+      const baseX = card.getData('baseX') ?? card.x;
+      const baseY = card.getData('baseY') ?? card.y;
+
+      const targetAngle = card.getData('targetAngle') ?? 0;
+      const targetScale = card.getData('targetScale') ?? 1.0;
+      const targetOffsetX = card.getData('targetOffsetX') ?? 0;
+      const targetOffsetY = card.getData('targetOffsetY') ?? 0;
+
+      card.angle = Phaser.Math.Linear(card.angle, targetAngle, lerpSpeed);
+
+      const newScale = Phaser.Math.Linear(card.scaleX, targetScale, lerpSpeed);
+      card.setScale(newScale);
+
+      card.x = Phaser.Math.Linear(card.x, baseX + targetOffsetX, lerpSpeed);
+      card.y = Phaser.Math.Linear(card.y, baseY + targetOffsetY, lerpSpeed);
     });
   }
 }

@@ -22,6 +22,8 @@ export class MenuScene extends Phaser.Scene {
     bgGraphics.fillGradientStyle(0x0a0a14, 0x0a0a14, 0x14051a, 0x14051a, 1);
     bgGraphics.fillRect(0, 0, width, height);
 
+    this.createStarfield();
+
     // Decorate with grid lines
     bgGraphics.lineStyle(1, 0x332244, 0.2);
     const gridSize = 40;
@@ -294,6 +296,25 @@ export class MenuScene extends Phaser.Scene {
             this.scene.start('PlayScene');
           }
         });
+      });
+    });
+  }
+
+  private createStarfield() {
+    const { width, height } = this.scale;
+    const colors = ['red', 'blue', 'green', 'yellow', 'purple'];
+    colors.forEach(col => {
+      this.add.particles(0, 0, `candy_${col}`, {
+        x: { min: 0, max: width },
+        y: { min: 0, max: height },
+        frequency: 800,
+        lifespan: 12000,
+        speedY: { min: 5, max: 15 },
+        speedX: { min: -2, max: 2 },
+        scale: { min: 0.03, max: 0.08 },
+        alpha: { min: 0.1, max: 0.4 },
+        blendMode: 'ADD',
+        advance: 12000
       });
     });
   }
